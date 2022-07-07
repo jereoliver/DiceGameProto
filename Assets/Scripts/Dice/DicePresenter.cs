@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace DiceGameProto
+namespace Dice
 {
     public class DicePresenter : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UniRx;
 
-namespace DiceGameProto
+namespace Dice
 {
     public interface IDiceController
     {

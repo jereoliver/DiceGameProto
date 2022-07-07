@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Scoreboard;
 using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace DiceGameProto
+namespace Scoreboard
 {
     public class ScoreboardPresenter : MonoBehaviour
     {
@@ -27,7 +28,7 @@ namespace DiceGameProto
 
         // todo change this when multiplayer and each scoreboardPresenter needs own ScoreboardController
         [Inject] private readonly IScoreboardController scoreboardController;
-        [Inject] private readonly IScoreboard scoreboard;
+        [Inject] private readonly IScoreboardModel scoreboard;
 
         private void Awake()
         {

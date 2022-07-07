@@ -1,7 +1,9 @@
+using Dice;
 using JetBrains.Annotations;
+using Scoreboard;
 using Zenject;
 
-namespace DiceGameProto
+namespace GameFlow
 {
     public interface IGameFlowController
     {

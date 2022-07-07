@@ -1,24 +1,17 @@
 using System;
+using Dice;
 using JetBrains.Annotations;
 using UniRx;
 using UnityEngine;
 
-namespace DiceGameProto
+namespace Scoreboard
 {
     public interface IScoreboardController
     {
-        // IReadOnlyReactiveProperty<int> RedPoints { get; }
-        // IReadOnlyReactiveProperty<int> YellowPoints { get; }
-        // IReadOnlyReactiveProperty<int> GreenPoints { get; }
-        // IReadOnlyReactiveProperty<int> BluePoints { get; }
-        // IReadOnlyReactiveProperty<int> ErrorPoints { get; }
-        // IReadOnlyReactiveProperty<int> TotalPoints { get; }
-        IReadOnlyReactiveProperty<bool> IsActiveTurn { get; }
-        IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; }
-        ScorePossibilities CurrentScorePossibilities { get; }
-        int CurrentWhiteDiceSum { get; }
-        int AmountOfErrors { get; }
-
+        IReadOnlyReactiveProperty<bool> IsActiveTurn { get; } // this helps ScoreboardPresenter to visualize state
+        IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; } // listen to this from GameFlowController
+        ScorePossibilities CurrentScorePossibilities { get; } // this helps ScoreboardPresenter to visualize state / maybe move later to GameFlowController
+        int CurrentWhiteDiceSum { get; } // this helps ScoreboardPresenter to visualize state
         void AddCross(SlotColor color);
         void AddError();
         void StartTurn(ScorePossibilities scorePossibilities, bool activeTurn);
@@ -28,12 +21,6 @@ namespace DiceGameProto
     [UsedImplicitly]
     public class ScoreboardController : IScoreboardController
     {
-        // private IReactiveProperty<int> RedPoints { get; }
-        // private IReactiveProperty<int> YellowPoints { get; }
-        // private IReactiveProperty<int> GreenPoints { get; }
-        // private IReactiveProperty<int> BluePoints { get; }
-        // private IReactiveProperty<int> ErrorPoints { get; }
-        // private IReactiveProperty<int> TotalPoints { get; }
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
 
@@ -44,32 +31,20 @@ namespace DiceGameProto
         private int amountOfYellowCrosses;
         private int amountOfGreenCrosses;
         private int amountOfBlueCrosses;
-        public int AmountOfErrors { get; private set; }
+        private int amountOfErrors;
 
-        private IScoreboard scoreboard; // todo inject correct one with Id
+        private IScoreboardModel scoreboard; // todo inject correct one with Id
 
 
-        public ScoreboardController(IScoreboard scoreboard)
+        public ScoreboardController(IScoreboardModel scoreboard)
         {
             this.scoreboard = scoreboard;
-            // RedPoints = new ReactiveProperty<int>();
-            // YellowPoints = new ReactiveProperty<int>();
-            // GreenPoints = new ReactiveProperty<int>();
-            // BluePoints = new ReactiveProperty<int>();
-            // TotalPoints = new ReactiveProperty<int>();
-            // ErrorPoints = new ReactiveProperty<int>();
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
             CurrentWhiteDiceSum = 0;
             CurrentScorePossibilities = new ScorePossibilities();
         }
-
-        // IReadOnlyReactiveProperty<int> IScoreboardController.RedPoints => RedPoints;
-        // IReadOnlyReactiveProperty<int> IScoreboardController.YellowPoints => YellowPoints;
-        // IReadOnlyReactiveProperty<int> IScoreboardController.GreenPoints => GreenPoints;
-        // IReadOnlyReactiveProperty<int> IScoreboardController.BluePoints => BluePoints;
-        // IReadOnlyReactiveProperty<int> IScoreboardController.ErrorPoints => ErrorPoints;
-        // IReadOnlyReactiveProperty<int> IScoreboardController.TotalPoints => TotalPoints;
+        
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
         IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
 
@@ -79,19 +54,19 @@ namespace DiceGameProto
             {
                 case SlotColor.Red:
                     amountOfRedCrosses++;
-                    scoreboard.SetRedPoints(ScoreType.Red, ConvertAmountOfCrossesToPoints(amountOfRedCrosses));
+                    scoreboard.SetPoints(ScoreType.Red, ConvertAmountOfCrossesToPoints(amountOfRedCrosses));
                     break;
                 case SlotColor.Yellow:
                     amountOfYellowCrosses++;
-                    scoreboard.SetRedPoints(ScoreType.Yellow, ConvertAmountOfCrossesToPoints(amountOfYellowCrosses));
+                    scoreboard.SetPoints(ScoreType.Yellow, ConvertAmountOfCrossesToPoints(amountOfYellowCrosses));
                     break;
                 case SlotColor.Green:
                     amountOfGreenCrosses++;
-                    scoreboard.SetRedPoints(ScoreType.Green, ConvertAmountOfCrossesToPoints(amountOfGreenCrosses));
+                    scoreboard.SetPoints(ScoreType.Green, ConvertAmountOfCrossesToPoints(amountOfGreenCrosses));
                     break;
                 case SlotColor.Blue:
                     amountOfBlueCrosses++;
-                    scoreboard.SetRedPoints(ScoreType.Blue, ConvertAmountOfCrossesToPoints(amountOfBlueCrosses));
+                    scoreboard.SetPoints(ScoreType.Blue, ConvertAmountOfCrossesToPoints(amountOfBlueCrosses));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(color), color, null);
@@ -102,10 +77,10 @@ namespace DiceGameProto
 
         public void AddError()
         {
-            AmountOfErrors++;
-            scoreboard.SetRedPoints(ScoreType.Error, AmountOfErrors * 5); // todo get errorSingularScore from config
+            amountOfErrors++;
+            scoreboard.SetPoints(ScoreType.Error, amountOfErrors * 5); // todo get errorSingularScore from config
             UpdateTotalPoints();
-            if (AmountOfErrors >= 4)
+            if (amountOfErrors >= 4)
             {
                 Debug.Log("game over, implement handling later");
             }
@@ -138,7 +113,7 @@ namespace DiceGameProto
             var totalPoints = scoreboard.RedPoints.Value + scoreboard.YellowPoints.Value +
                               scoreboard.GreenPoints.Value + scoreboard.BluePoints.Value -
                               scoreboard.ErrorPoints.Value;
-            scoreboard.SetRedPoints(ScoreType.Total, totalPoints);
+            scoreboard.SetPoints(ScoreType.Total, totalPoints);
         }
 
         private static int ConvertAmountOfCrossesToPoints(int amount)

@@ -2,9 +2,9 @@ using System;
 using JetBrains.Annotations;
 using UniRx;
 
-namespace DiceGameProto
+namespace Scoreboard
 {
-    public interface IScoreboard
+    public interface IScoreboardModel
     {
         IReadOnlyReactiveProperty<int> RedPoints { get; }
         IReadOnlyReactiveProperty<int> YellowPoints { get; }
@@ -12,13 +12,12 @@ namespace DiceGameProto
         IReadOnlyReactiveProperty<int> BluePoints { get; }
         IReadOnlyReactiveProperty<int> ErrorPoints { get; }
         IReadOnlyReactiveProperty<int> TotalPoints { get; }
-        void SetRedPoints(ScoreType scoreType, int amount);
+        void SetPoints(ScoreType scoreType, int amount);
     }
 
     [UsedImplicitly]
-    public class Scoreboard : IScoreboard
+    public class ScoreboardModel : IScoreboardModel
     {
-
         private IReactiveProperty<int> RedPoints { get; }
         private IReactiveProperty<int> YellowPoints { get; }
         private IReactiveProperty<int> GreenPoints { get; }
@@ -26,7 +25,7 @@ namespace DiceGameProto
         private IReactiveProperty<int> ErrorPoints { get; }
         private IReactiveProperty<int> TotalPoints { get; }
         
-        public void SetRedPoints(ScoreType scoreType, int amount)
+        public void SetPoints(ScoreType scoreType, int amount)
         {
             switch (scoreType)
             {
@@ -53,7 +52,7 @@ namespace DiceGameProto
             }
         }
 
-        public Scoreboard()
+        public ScoreboardModel()
         {
             RedPoints = new ReactiveProperty<int>();
             YellowPoints = new ReactiveProperty<int>();
@@ -62,12 +61,12 @@ namespace DiceGameProto
             TotalPoints = new ReactiveProperty<int>();
             ErrorPoints = new ReactiveProperty<int>();
         }
-        IReadOnlyReactiveProperty<int> IScoreboard.RedPoints => RedPoints;
-        IReadOnlyReactiveProperty<int> IScoreboard.YellowPoints => YellowPoints;
-        IReadOnlyReactiveProperty<int> IScoreboard.GreenPoints => GreenPoints;
-        IReadOnlyReactiveProperty<int> IScoreboard.BluePoints => BluePoints;
-        IReadOnlyReactiveProperty<int> IScoreboard.ErrorPoints => ErrorPoints;
-        IReadOnlyReactiveProperty<int> IScoreboard.TotalPoints => TotalPoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.RedPoints => RedPoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.YellowPoints => YellowPoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.GreenPoints => GreenPoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.BluePoints => BluePoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.ErrorPoints => ErrorPoints;
+        IReadOnlyReactiveProperty<int> IScoreboardModel.TotalPoints => TotalPoints;
     }
 
     public enum ScoreType

@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace DiceGameProto
+namespace GameFlow
 {
     public class GameFlowPresenter : MonoBehaviour
     {
