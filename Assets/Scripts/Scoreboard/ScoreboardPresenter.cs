@@ -27,7 +27,7 @@ namespace Scoreboard
         private bool currentlyOwnTurn = false;
 
         // todo change this when multiplayer and each scoreboardPresenter needs own ScoreboardController
-        [Inject] private readonly IScoreboardController scoreboardController;
+        [Inject (Id = "Player")] private IScoreboardController scoreboardController; 
         [Inject] private readonly IScoreboardModel scoreboard;
 
         private void Awake()
