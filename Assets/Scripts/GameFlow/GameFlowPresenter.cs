@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace GameFlow
+namespace DiceGameProto
 {
     public class GameFlowPresenter : MonoBehaviour
     {

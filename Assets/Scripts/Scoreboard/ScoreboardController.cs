@@ -1,19 +1,18 @@
 using System;
-using Dice;
 using JetBrains.Annotations;
 using UniRx;
 using UnityEngine;
 
-namespace Scoreboard
+namespace DiceGameProto
 {
     public interface IScoreboardController
     {
-        IReadOnlyReactiveProperty<int> RedPoints { get; }
-        IReadOnlyReactiveProperty<int> YellowPoints { get; }
-        IReadOnlyReactiveProperty<int> GreenPoints { get; }
-        IReadOnlyReactiveProperty<int> BluePoints { get; }
-        IReadOnlyReactiveProperty<int> ErrorPoints { get; }
-        IReadOnlyReactiveProperty<int> TotalPoints { get; }
+        // IReadOnlyReactiveProperty<int> RedPoints { get; }
+        // IReadOnlyReactiveProperty<int> YellowPoints { get; }
+        // IReadOnlyReactiveProperty<int> GreenPoints { get; }
+        // IReadOnlyReactiveProperty<int> BluePoints { get; }
+        // IReadOnlyReactiveProperty<int> ErrorPoints { get; }
+        // IReadOnlyReactiveProperty<int> TotalPoints { get; }
         IReadOnlyReactiveProperty<bool> IsActiveTurn { get; }
         IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; }
         ScorePossibilities CurrentScorePossibilities { get; }
@@ -29,12 +28,12 @@ namespace Scoreboard
     [UsedImplicitly]
     public class ScoreboardController : IScoreboardController
     {
-        private IReactiveProperty<int> RedPoints { get; }
-        private IReactiveProperty<int> YellowPoints { get; }
-        private IReactiveProperty<int> GreenPoints { get; }
-        private IReactiveProperty<int> BluePoints { get; }
-        private IReactiveProperty<int> ErrorPoints { get; }
-        private IReactiveProperty<int> TotalPoints { get; }
+        // private IReactiveProperty<int> RedPoints { get; }
+        // private IReactiveProperty<int> YellowPoints { get; }
+        // private IReactiveProperty<int> GreenPoints { get; }
+        // private IReactiveProperty<int> BluePoints { get; }
+        // private IReactiveProperty<int> ErrorPoints { get; }
+        // private IReactiveProperty<int> TotalPoints { get; }
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
 
@@ -47,27 +46,30 @@ namespace Scoreboard
         private int amountOfBlueCrosses;
         public int AmountOfErrors { get; private set; }
 
+        private IScoreboard scoreboard; // todo inject correct one with Id
 
-        public ScoreboardController()
+
+        public ScoreboardController(IScoreboard scoreboard)
         {
-            RedPoints = new ReactiveProperty<int>();
-            YellowPoints = new ReactiveProperty<int>();
-            GreenPoints = new ReactiveProperty<int>();
-            BluePoints = new ReactiveProperty<int>();
-            TotalPoints = new ReactiveProperty<int>();
-            ErrorPoints = new ReactiveProperty<int>();
+            this.scoreboard = scoreboard;
+            // RedPoints = new ReactiveProperty<int>();
+            // YellowPoints = new ReactiveProperty<int>();
+            // GreenPoints = new ReactiveProperty<int>();
+            // BluePoints = new ReactiveProperty<int>();
+            // TotalPoints = new ReactiveProperty<int>();
+            // ErrorPoints = new ReactiveProperty<int>();
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
             CurrentWhiteDiceSum = 0;
             CurrentScorePossibilities = new ScorePossibilities();
         }
 
-        IReadOnlyReactiveProperty<int> IScoreboardController.RedPoints => RedPoints;
-        IReadOnlyReactiveProperty<int> IScoreboardController.YellowPoints => YellowPoints;
-        IReadOnlyReactiveProperty<int> IScoreboardController.GreenPoints => GreenPoints;
-        IReadOnlyReactiveProperty<int> IScoreboardController.BluePoints => BluePoints;
-        IReadOnlyReactiveProperty<int> IScoreboardController.ErrorPoints => ErrorPoints;
-        IReadOnlyReactiveProperty<int> IScoreboardController.TotalPoints => TotalPoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.RedPoints => RedPoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.YellowPoints => YellowPoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.GreenPoints => GreenPoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.BluePoints => BluePoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.ErrorPoints => ErrorPoints;
+        // IReadOnlyReactiveProperty<int> IScoreboardController.TotalPoints => TotalPoints;
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
         IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
 
@@ -77,19 +79,19 @@ namespace Scoreboard
             {
                 case SlotColor.Red:
                     amountOfRedCrosses++;
-                    RedPoints.Value = ConvertAmountOfCrossesToPoints(amountOfRedCrosses);
+                    scoreboard.SetRedPoints(ScoreType.Red, ConvertAmountOfCrossesToPoints(amountOfRedCrosses));
                     break;
                 case SlotColor.Yellow:
                     amountOfYellowCrosses++;
-                    YellowPoints.Value = ConvertAmountOfCrossesToPoints(amountOfYellowCrosses);
+                    scoreboard.SetRedPoints(ScoreType.Yellow, ConvertAmountOfCrossesToPoints(amountOfYellowCrosses));
                     break;
                 case SlotColor.Green:
                     amountOfGreenCrosses++;
-                    GreenPoints.Value = ConvertAmountOfCrossesToPoints(amountOfGreenCrosses);
+                    scoreboard.SetRedPoints(ScoreType.Green, ConvertAmountOfCrossesToPoints(amountOfGreenCrosses));
                     break;
                 case SlotColor.Blue:
                     amountOfBlueCrosses++;
-                    BluePoints.Value = ConvertAmountOfCrossesToPoints(amountOfBlueCrosses);
+                    scoreboard.SetRedPoints(ScoreType.Blue, ConvertAmountOfCrossesToPoints(amountOfBlueCrosses));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(color), color, null);
@@ -101,7 +103,7 @@ namespace Scoreboard
         public void AddError()
         {
             AmountOfErrors++;
-            ErrorPoints.Value = AmountOfErrors * 5;
+            scoreboard.SetRedPoints(ScoreType.Error, AmountOfErrors * 5); // todo get errorSingularScore from config
             UpdateTotalPoints();
             if (AmountOfErrors >= 4)
             {
@@ -133,8 +135,10 @@ namespace Scoreboard
 
         private void UpdateTotalPoints()
         {
-            TotalPoints.Value = RedPoints.Value + YellowPoints.Value + GreenPoints.Value + BluePoints.Value -
-                                ErrorPoints.Value;
+            var totalPoints = scoreboard.RedPoints.Value + scoreboard.YellowPoints.Value +
+                              scoreboard.GreenPoints.Value + scoreboard.BluePoints.Value -
+                              scoreboard.ErrorPoints.Value;
+            scoreboard.SetRedPoints(ScoreType.Total, totalPoints);
         }
 
         private static int ConvertAmountOfCrossesToPoints(int amount)

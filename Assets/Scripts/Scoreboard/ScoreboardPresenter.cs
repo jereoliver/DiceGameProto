@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
 
-namespace Scoreboard
+namespace DiceGameProto
 {
     public class ScoreboardPresenter : MonoBehaviour
     {
@@ -27,6 +27,7 @@ namespace Scoreboard
 
         // todo change this when multiplayer and each scoreboardPresenter needs own ScoreboardController
         [Inject] private readonly IScoreboardController scoreboardController;
+        [Inject] private readonly IScoreboard scoreboard;
 
         private void Awake()
         {
@@ -37,12 +38,12 @@ namespace Scoreboard
 
         private void SubscribeReactiveProperties()
         {
-            scoreboardController.RedPoints.Subscribe(UpdateRedPointsText).AddTo(gameObject);
-            scoreboardController.YellowPoints.Subscribe(UpdateYellowPointsText).AddTo(gameObject);
-            scoreboardController.GreenPoints.Subscribe(UpdateGreenPointsText).AddTo(gameObject);
-            scoreboardController.BluePoints.Subscribe(UpdateBluePointsText).AddTo(gameObject);
-            scoreboardController.TotalPoints.Subscribe(UpdateTotalPointsText).AddTo(gameObject);
-            scoreboardController.ErrorPoints.Subscribe(UpdateErrorPointsText).AddTo(gameObject);
+            scoreboard.RedPoints.Subscribe(UpdateRedPointsText).AddTo(gameObject);
+            scoreboard.YellowPoints.Subscribe(UpdateYellowPointsText).AddTo(gameObject);
+            scoreboard.GreenPoints.Subscribe(UpdateGreenPointsText).AddTo(gameObject);
+            scoreboard.BluePoints.Subscribe(UpdateBluePointsText).AddTo(gameObject);
+            scoreboard.TotalPoints.Subscribe(UpdateTotalPointsText).AddTo(gameObject);
+            scoreboard.ErrorPoints.Subscribe(UpdateErrorPointsText).AddTo(gameObject);
             scoreboardController.IsActiveTurn.Subscribe(HandleTurnStarted).AddTo(gameObject);
         }
 

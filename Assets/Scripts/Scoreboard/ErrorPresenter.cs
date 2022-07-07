@@ -3,7 +3,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Scoreboard
+namespace DiceGameProto
 {
     public class ErrorPresenter : MonoBehaviour
     {
