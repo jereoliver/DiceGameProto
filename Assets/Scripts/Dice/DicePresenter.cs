@@ -12,7 +12,6 @@ namespace Dice
         private Image diceImage;
         [SerializeField] private List<Sprite> diceSprites;
         [SerializeField] private List<Color> diceColors;
-
         [SerializeField] private DiceType diceType;
 
         [Inject] private readonly IDiceController diceController;

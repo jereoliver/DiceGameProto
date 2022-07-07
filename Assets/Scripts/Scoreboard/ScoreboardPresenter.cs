@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Scoreboard;
+using ScorePossibilities;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -24,11 +24,12 @@ namespace Scoreboard
         [SerializeField] private List<ErrorPresenter> errorPresenters;
 
         private readonly List<SlotPresenter> slotPresenters = new List<SlotPresenter>();
-        private bool currentlyOwnTurn = false;
+        private bool currentlyOwnTurn;
 
         // todo change this when multiplayer and each scoreboardPresenter needs own ScoreboardController
         [Inject (Id = "Player")] private IScoreboardController scoreboardController; 
         [Inject] private readonly IScoreboardModel scoreboard;
+        [Inject] private readonly IScorePossibilitiesController scorePossibilitiesController;
 
         private void Awake()
         {
@@ -89,7 +90,7 @@ namespace Scoreboard
                 SetAllPreviousSameColoredSlotsInactive(slotPresenter);
             }
 
-            var isFromWhiteDice = scoreboardController.CurrentWhiteDiceSum == slotPresenter.Number;
+            var isFromWhiteDice = scorePossibilitiesController.CurrentWhiteDiceSum == slotPresenter.Number;
             if (isFromWhiteDice && currentlyOwnTurn)
             {
                 HandleCrossingWhiteSumOnOwnTurn();
@@ -105,7 +106,7 @@ namespace Scoreboard
             endTurnButton.interactable = true;
             UpdateErrorButtonsState(areUncrossedInteractable: false);
             InitSlotsForNewTurn();
-            var scorePossibilities = scoreboardController.CurrentScorePossibilities;
+            var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
             OpenSlotsForColor(SlotColor.Red, scorePossibilities.RedDiceSums);
             OpenSlotsForColor(SlotColor.Yellow, scorePossibilities.YellowDiceSums);
             OpenSlotsForColor(SlotColor.Green, scorePossibilities.GreenDiceSums);
@@ -222,16 +223,15 @@ namespace Scoreboard
             InitSlotsForNewTurn();
             currentlyOwnTurn = isOwnTurn;
             ownTurnIndicator.SetActive(isOwnTurn);
-            Debug.Log("it's now new turn " + DateTime.UtcNow + " and isOwnTurn is: " + isOwnTurn);
-        //    Debug.Log($"it's now new turn DateTime.UtcNow and isOwnTurn is: {isOwnTurn}");
+            Debug.Log("it's now new turn and isOwnTurn is: " + isOwnTurn);
 
 
-            var scorePossibilities = scoreboardController.CurrentScorePossibilities;
+            var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
             UpdateErrorButtonsState(isOwnTurn);
 
             if (isOwnTurn)
             {
-                OpenSlotsForWhite(scoreboardController.CurrentWhiteDiceSum);
+                OpenSlotsForWhite(scorePossibilitiesController.CurrentWhiteDiceSum);
                 OpenSlotsForColor(SlotColor.Red, scorePossibilities.RedDiceSums);
                 OpenSlotsForColor(SlotColor.Yellow, scorePossibilities.YellowDiceSums);
                 OpenSlotsForColor(SlotColor.Green, scorePossibilities.GreenDiceSums);
@@ -239,7 +239,7 @@ namespace Scoreboard
             }
             else
             {
-                OpenSlotsForWhite(scoreboardController.CurrentWhiteDiceSum);
+                OpenSlotsForWhite(scorePossibilitiesController.CurrentWhiteDiceSum);
                 endTurnButton.interactable = true;
             }
         }

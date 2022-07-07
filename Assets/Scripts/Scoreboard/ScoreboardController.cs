@@ -1,5 +1,4 @@
 using System;
-using Dice;
 using JetBrains.Annotations;
 using UniRx;
 using UnityEngine;
@@ -10,11 +9,9 @@ namespace Scoreboard
     {
         IReadOnlyReactiveProperty<bool> IsActiveTurn { get; } // this helps ScoreboardPresenter to visualize state
         IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; } // listen to this from GameFlowController
-        ScorePossibilities CurrentScorePossibilities { get; } // this helps ScoreboardPresenter to visualize state / maybe move later to GameFlowController
-        int CurrentWhiteDiceSum { get; } // this helps ScoreboardPresenter to visualize state
         void AddCross(SlotColor color);
         void AddError();
-        void StartTurn(ScorePossibilities scorePossibilities, bool activeTurn);
+        void StartTurn(bool activeTurn);
         void EndTurn();
     }
 
@@ -23,9 +20,7 @@ namespace Scoreboard
     {
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
-
-        public ScorePossibilities CurrentScorePossibilities { get; private set; }
-        public int CurrentWhiteDiceSum { get; private set; }
+        
 
         private int amountOfRedCrosses;
         private int amountOfYellowCrosses;
@@ -41,8 +36,6 @@ namespace Scoreboard
             this.scoreboard = scoreboard;
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
-            CurrentWhiteDiceSum = 0;
-            CurrentScorePossibilities = new ScorePossibilities();
         }
         
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
@@ -86,18 +79,8 @@ namespace Scoreboard
             }
         }
 
-        public void StartTurn(ScorePossibilities scorePossibilities, bool activeTurn)
+        public void StartTurn(bool activeTurn)
         {
-            if (activeTurn)
-            {
-                CurrentScorePossibilities = scorePossibilities;
-                CurrentWhiteDiceSum = scorePossibilities.WhiteDiceSum;
-            }
-            else
-            {
-                CurrentScorePossibilities = new ScorePossibilities();
-                CurrentWhiteDiceSum = scorePossibilities.WhiteDiceSum;
-            }
             ThisTurnEnded.Value = false;
             IsActiveTurn.Value = activeTurn;
         }

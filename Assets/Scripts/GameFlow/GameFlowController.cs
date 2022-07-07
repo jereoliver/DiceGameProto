@@ -1,6 +1,7 @@
 using Dice;
 using JetBrains.Annotations;
 using Scoreboard;
+using ScorePossibilities;
 using Zenject;
 
 namespace GameFlow
@@ -17,6 +18,9 @@ namespace GameFlow
         [Inject(Id = "Player")] private IScoreboardController playerScoreboardController;
         [Inject(Id = "AI")] private IScoreboardController aiScoreboardController;
         [Inject] private IDiceController diceController;
+
+        [Inject] private IScorePossibilitiesController scorePossibilitiesController;
+
         private bool playersTurn;
 
 
@@ -25,9 +29,10 @@ namespace GameFlow
             // this currently just starts a new turn, implement later to start game and different method to handle turns
             diceController.Roll();
             var scorePossibilities = diceController.GetScorePossibilities();
+            scorePossibilitiesController.SetCurrentScorePossibilities(scorePossibilities);
             playersTurn = !playersTurn;
-            playerScoreboardController.StartTurn(scorePossibilities, playersTurn);
-            aiScoreboardController.StartTurn(scorePossibilities, !playersTurn);
+            playerScoreboardController.StartTurn(playersTurn);
+            aiScoreboardController.StartTurn(!playersTurn);
         }
 
         public void GameOver()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using ScorePossibilities;
 using UniRx;
 
 namespace Dice
@@ -14,8 +15,7 @@ namespace Dice
         IReadOnlyReactiveProperty<int> CurrentValueForGreen { get; }
         IReadOnlyReactiveProperty<int> CurrentValueForBlue { get; }
         void Roll();
-        int GetWhiteDiceSum();
-        ScorePossibilities GetScorePossibilities();
+        ScorePossibilitiesModel GetScorePossibilities();
     }
 
     [UsedImplicitly]
@@ -57,7 +57,7 @@ namespace Dice
             valueForBlue.Value = rnd.Next(1, 7);
         }
 
-        public int GetWhiteDiceSum()
+        private int GetWhiteDiceSum()
         {
             var whiteDiceSum = valueForWhite1.Value + valueForWhite2.Value;
             return whiteDiceSum;
@@ -103,9 +103,9 @@ namespace Dice
             return blueDiceSums;
         }
 
-        public ScorePossibilities GetScorePossibilities()
+        public ScorePossibilitiesModel GetScorePossibilities()
         {
-            var scorePossibilities = new ScorePossibilities
+            var scorePossibilities = new ScorePossibilitiesModel
             {
                 WhiteDiceSum = GetWhiteDiceSum(),
                 RedDiceSums = GetRedDiceSums(),
@@ -115,14 +115,5 @@ namespace Dice
             };
             return scorePossibilities;
         }
-    }
-
-    public class ScorePossibilities
-    {
-        public int WhiteDiceSum;
-        public List<int> RedDiceSums;
-        public List<int> YellowDiceSums;
-        public List<int> GreenDiceSums;
-        public List<int> BlueDiceSums;
     }
 }

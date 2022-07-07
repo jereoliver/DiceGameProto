@@ -1,4 +1,3 @@
-using Dice;
 using JetBrains.Annotations;
 using UniRx;
 using UnityEngine;
@@ -10,8 +9,6 @@ namespace Scoreboard
     {
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
-        public ScorePossibilities CurrentScorePossibilities { get; }
-        public int CurrentWhiteDiceSum { get; }
 
         private IScoreboardModel scoreboard;
 
@@ -23,8 +20,6 @@ namespace Scoreboard
         {
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
-            CurrentWhiteDiceSum = 0;
-            CurrentScorePossibilities = new ScorePossibilities();
             scoreboard = new ScoreboardModel();
         }
 
@@ -39,7 +34,7 @@ namespace Scoreboard
             
         }
 
-        public void StartTurn(ScorePossibilities scorePossibilities, bool activeTurn)
+        public void StartTurn(bool activeTurn)
         {
             EndTurn(); // now just always end own turn right away
         }
