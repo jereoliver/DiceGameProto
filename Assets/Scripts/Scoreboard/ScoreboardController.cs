@@ -28,7 +28,7 @@ namespace Scoreboard
         private int amountOfBlueCrosses;
         private int amountOfErrors;
 
-        private IScoreboardModel scoreboard; // todo inject correct one with Id
+        private IScoreboardModel scoreboard; // todo inject correct one with Id or create
 
 
         public ScoreboardController(IScoreboardModel scoreboard)

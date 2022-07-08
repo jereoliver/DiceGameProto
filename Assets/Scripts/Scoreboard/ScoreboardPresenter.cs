@@ -125,8 +125,8 @@ namespace Scoreboard
         {
             UpdateErrorButtonsState(areUncrossedInteractable: false);
             InitSlotsForNewTurn();
-            scoreboardController.EndTurn();
             endTurnButton.interactable = false;
+            scoreboardController.EndTurn();
         }
 
         private void SetAllPreviousSameColoredSlotsInactive(SlotPresenter slotPresenter)

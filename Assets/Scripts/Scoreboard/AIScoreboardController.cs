@@ -36,6 +36,9 @@ namespace Scoreboard
 
         public void StartTurn(bool activeTurn)
         {
+            ThisTurnEnded.Value = false;
+            // todo implement playing logic here
+            
             EndTurn(); // now just always end own turn right away
         }
 
