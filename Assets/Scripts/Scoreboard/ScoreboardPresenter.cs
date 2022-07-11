@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GameFlow.Signals;
 using ScorePossibilities;
 using TMPro;
 using UniRx;
@@ -26,10 +27,10 @@ namespace Scoreboard
         private readonly List<SlotPresenter> slotPresenters = new List<SlotPresenter>();
         private bool currentlyOwnTurn;
 
-        // todo change this when multiplayer and each scoreboardPresenter needs own ScoreboardController
-        [Inject (Id = "Player")] private IScoreboardController scoreboardController; 
+        [Inject(Id = "Player")] private IScoreboardController scoreboardController;
         [Inject] private readonly IScoreboardModel scoreboard;
         [Inject] private readonly IScorePossibilitiesController scorePossibilitiesController;
+        [Inject] private SignalBus signalBus;
 
         private void Awake()
         {
@@ -47,6 +48,7 @@ namespace Scoreboard
             scoreboard.TotalPoints.Subscribe(UpdateTotalPointsText).AddTo(gameObject);
             scoreboard.ErrorPoints.Subscribe(UpdateErrorPointsText).AddTo(gameObject);
             scoreboardController.IsActiveTurn.Subscribe(HandleTurnStarted).AddTo(gameObject);
+            signalBus.Subscribe<LockRowSignal>(LockRow);
         }
 
         private void AggregateAllSlotButtons()
@@ -67,9 +69,9 @@ namespace Scoreboard
                     HandleAddingCross(slot));
             }
 
-            foreach (var button in errorPresenters)
+            foreach (var errorPresenter in errorPresenters)
             {
-                button.ErrorButton.onClick.AddListener(() => HandleAddingError(button));
+                errorPresenter.ErrorButton.onClick.AddListener(() => HandleAddingError(errorPresenter));
             }
 
             endTurnButton.onClick.AddListener(EndTurn);
@@ -83,11 +85,11 @@ namespace Scoreboard
             {
                 CrossLockSlot(slotPresenter.SlotColor);
                 scoreboardController.AddCross(slotPresenter.SlotColor);
-                LockRow(slotPresenter.SlotColor);
+                signalBus.Fire(new LockRowSignal(slotPresenter.SlotColor));
             }
             else
             {
-                SetAllPreviousSameColoredSlotsInactive(slotPresenter);
+                CloseSlotsOnLeftSide(slotPresenter);
             }
 
             var isFromWhiteDice = scorePossibilitiesController.CurrentWhiteDiceSum == slotPresenter.Number;
@@ -105,7 +107,7 @@ namespace Scoreboard
         {
             endTurnButton.interactable = true;
             UpdateErrorButtonsState(areUncrossedInteractable: false);
-            InitSlotsForNewTurn();
+            ResetSlotsForNewTurn();
             var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
             OpenSlotsForColor(SlotColor.Red, scorePossibilities.RedDiceSums);
             OpenSlotsForColor(SlotColor.Yellow, scorePossibilities.YellowDiceSums);
@@ -120,16 +122,15 @@ namespace Scoreboard
             EndTurn();
         }
 
-
         private void EndTurn()
         {
             UpdateErrorButtonsState(areUncrossedInteractable: false);
-            InitSlotsForNewTurn();
             endTurnButton.interactable = false;
+            ResetSlotsForNewTurn();
             scoreboardController.EndTurn();
         }
 
-        private void SetAllPreviousSameColoredSlotsInactive(SlotPresenter slotPresenter)
+        private void CloseSlotsOnLeftSide(SlotPresenter slotPresenter)
         {
             // set all previous same colored slots inactive
             foreach (var slot in slotPresenters)
@@ -213,24 +214,23 @@ namespace Scoreboard
         #endregion
 
 
-        private void UpdateErrorPointsText(int pointsAmount)
+        private void UpdateErrorPointsText(int amount)
         {
-            errorPointsText.text = pointsAmount.ToString();
+            errorPointsText.text = amount.ToString();
         }
 
         private void HandleTurnStarted(bool isOwnTurn)
         {
-            InitSlotsForNewTurn();
+            ResetSlotsForNewTurn();
             currentlyOwnTurn = isOwnTurn;
-            ownTurnIndicator.SetActive(isOwnTurn);
+            ownTurnIndicator.SetActive(currentlyOwnTurn);
             Debug.Log("it's now new turn and isOwnTurn is: " + isOwnTurn);
 
-
-            var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
             UpdateErrorButtonsState(isOwnTurn);
 
             if (isOwnTurn)
             {
+                var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
                 OpenSlotsForWhite(scorePossibilitiesController.CurrentWhiteDiceSum);
                 OpenSlotsForColor(SlotColor.Red, scorePossibilities.RedDiceSums);
                 OpenSlotsForColor(SlotColor.Yellow, scorePossibilities.YellowDiceSums);
@@ -258,7 +258,7 @@ namespace Scoreboard
         {
             foreach (var slot in slotPresenters.Where(slot => slot.Number == whiteDiceSum))
             {
-                SetSlotAvailableIfUnavailable(slot);
+                SetSlotAvailableByScore(slot);
             }
         }
 
@@ -266,11 +266,11 @@ namespace Scoreboard
         {
             foreach (var slot in slotPresenters.Where(t => t.SlotColor == slotColor && diceSums.Contains(t.Number)))
             {
-                SetSlotAvailableIfUnavailable(slot);
+                SetSlotAvailableByScore(slot);
             }
         }
 
-        private static void SetSlotAvailableIfUnavailable(SlotPresenter slot)
+        private static void SetSlotAvailableByScore(SlotPresenter slot)
         {
             if (slot.CurrentSlotState == SlotState.UnavailableByScore)
                 slot.SetSlotState(SlotState.Available);
@@ -288,7 +288,7 @@ namespace Scoreboard
             }
         }
 
-        private void InitSlotsForNewTurn()
+        private void ResetSlotsForNewTurn()
         {
             if (slotPresenters == null)
             {
@@ -306,11 +306,10 @@ namespace Scoreboard
             totalPointsText.text = pointsAmount.ToString();
         }
 
-        private void LockRow(SlotColor slotColor)
+        private void LockRow(LockRowSignal lockRowSignal)
         {
-            // todo implement something reactive to GameController to tell every scoreboard that row is locked
-            foreach (var slotPresenter in slotPresenters
-                         .Where(slotPresenter => slotPresenter.SlotColor == slotColor && !slotPresenter.IsCrossed))
+            foreach (var slotPresenter in slotPresenters.Where(slotPresenter =>
+                         slotPresenter.SlotColor == lockRowSignal.ColorToLock && !slotPresenter.IsCrossed))
             {
                 slotPresenter.SetSlotState(SlotState.Removed);
             }

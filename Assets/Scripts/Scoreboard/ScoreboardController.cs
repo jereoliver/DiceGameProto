@@ -1,7 +1,9 @@
 using System;
+using GameFlow.Signals;
 using JetBrains.Annotations;
 using UniRx;
 using UnityEngine;
+using Zenject;
 
 namespace Scoreboard
 {
@@ -13,6 +15,7 @@ namespace Scoreboard
         void AddError();
         void StartTurn(bool activeTurn);
         void EndTurn();
+        void LockRow(SlotColor slotColor); // todo delete this after AI is implemented
     }
 
     [UsedImplicitly]
@@ -29,11 +32,13 @@ namespace Scoreboard
         private int amountOfErrors;
 
         private IScoreboardModel scoreboard; // todo inject correct one with Id or create
+        private readonly SignalBus signalBus;
 
 
-        public ScoreboardController(IScoreboardModel scoreboard)
+        public ScoreboardController(IScoreboardModel scoreboard, SignalBus signalBus)
         {
             this.scoreboard = scoreboard;
+            this.signalBus = signalBus;
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
         }
@@ -75,7 +80,7 @@ namespace Scoreboard
             UpdateTotalPoints();
             if (amountOfErrors >= 4)
             {
-                Debug.Log("game over, implement handling later");
+                signalBus.Fire(new GameOverSignal());
             }
         }
 
@@ -89,6 +94,11 @@ namespace Scoreboard
         {
             Debug.Log("turn ended");
             ThisTurnEnded.Value = true;
+        }
+
+        public void LockRow(SlotColor slotColor)
+        {
+            signalBus.Fire(new LockRowSignal(slotColor)); // todo delete this after AI is implemented
         }
 
         private void UpdateTotalPoints()
