@@ -28,14 +28,14 @@ namespace Scoreboard
         private bool currentlyOwnTurn;
 
         [Inject(Id = "Player")] private IScoreboardController scoreboardController;
-        [Inject] private readonly IScoreboardModel scoreboard;
+        [Inject(Id = "Player")] private readonly IScoreboardModel scoreboard;
         [Inject] private readonly IScorePossibilitiesController scorePossibilitiesController;
         [Inject] private SignalBus signalBus;
 
         private void Awake()
         {
             SubscribeReactiveProperties();
-            AggregateAllSlotButtons();
+            AggregateAllSlotPresenters();
             SetupButtons();
         }
 
@@ -51,7 +51,7 @@ namespace Scoreboard
             signalBus.Subscribe<LockRowSignal>(LockRow);
         }
 
-        private void AggregateAllSlotButtons()
+        private void AggregateAllSlotPresenters()
         {
             foreach (Transform slots in slotsParent.transform)
             foreach (Transform slot in slots)

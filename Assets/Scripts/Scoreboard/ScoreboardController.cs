@@ -31,13 +31,12 @@ namespace Scoreboard
         private int amountOfBlueCrosses;
         private int amountOfErrors;
 
-        private IScoreboardModel scoreboard; // todo inject correct one with Id or create
+        [Inject(Id = "Player")] private IScoreboardModel scoreboard; // todo inject correct one with Id or create
         private readonly SignalBus signalBus;
 
 
-        public ScoreboardController(IScoreboardModel scoreboard, SignalBus signalBus)
-        {
-            this.scoreboard = scoreboard;
+        public ScoreboardController(SignalBus signalBus)
+        { 
             this.signalBus = signalBus;
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();

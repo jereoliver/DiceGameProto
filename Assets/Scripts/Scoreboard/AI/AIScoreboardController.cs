@@ -4,7 +4,7 @@ using UniRx;
 using UnityEngine;
 using Zenject;
 
-namespace Scoreboard
+namespace Scoreboard.AI
 {
     [UsedImplicitly]
     public class AIScoreboardController : IScoreboardController
@@ -12,8 +12,8 @@ namespace Scoreboard
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
 
-        private IScoreboardModel scoreboard;
-        private SignalBus signalBus;
+        [Inject(Id = "AI")] private IScoreboardModel scoreboard;
+        private readonly SignalBus signalBus;
 
 
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
@@ -24,7 +24,6 @@ namespace Scoreboard
             this.signalBus = signalBus;
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
-            scoreboard = new ScoreboardModel();
         }
 
         public void AddCross(SlotColor color)

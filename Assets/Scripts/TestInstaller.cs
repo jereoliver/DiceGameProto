@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using GameFlow;
 using GameFlow.Signals;
 using Scoreboard;
+using Scoreboard.AI;
 using ScorePossibilities;
 using Zenject;
 
@@ -17,10 +18,12 @@ public class TestInstaller : Installer<TestInstaller>
         Container.BindInterfacesTo<DiceController>().AsSingle();
         Container.Bind<IScoreboardController>().WithId("Player").To<ScoreboardController>().AsSingle();
         Container.Bind<IScoreboardController>().WithId("AI").To<AIScoreboardController>().AsSingle();
-        Container.BindInterfacesTo<ScoreboardModel>().AsSingle();
+        Container.Bind<IScoreboardModel>().WithId("Player").To<ScoreboardModel>().AsSingle();
+        Container.Bind<IScoreboardModel>().WithId("AI").To<AIScoreboardModel>().AsSingle();
+        // Container.BindInterfacesTo<ScoreboardModel>().AsSingle();
         Container.BindInterfacesTo<GameFlowController>().AsSingle();
         Container.BindInterfacesTo<ScorePossibilitiesController>().AsSingle();
-        
+
         DeclareAndBindSignals();
     }
 
