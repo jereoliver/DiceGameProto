@@ -210,15 +210,18 @@ namespace Scoreboard
                     throw new ArgumentOutOfRangeException(nameof(slotColor), slotColor, null);
             }
         }
-
-        #endregion
-
+        
+        private void UpdateTotalPointsText(int pointsAmount)
+        {
+            totalPointsText.text = pointsAmount.ToString();
+        }
 
         private void UpdateErrorPointsText(int amount)
         {
             errorPointsText.text = amount.ToString();
         }
-
+        #endregion
+        
         private void HandleTurnStarted(bool isOwnTurn)
         {
             ResetSlotsForNewTurn();
@@ -300,11 +303,7 @@ namespace Scoreboard
                 slot.SetSlotState(SlotState.UnavailableByScore);
             }
         }
-
-        private void UpdateTotalPointsText(int pointsAmount)
-        {
-            totalPointsText.text = pointsAmount.ToString();
-        }
+        
 
         private void LockRow(LockRowSignal lockRowSignal)
         {

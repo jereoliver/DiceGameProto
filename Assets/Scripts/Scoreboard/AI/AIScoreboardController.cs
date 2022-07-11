@@ -6,11 +6,17 @@ using Zenject;
 
 namespace Scoreboard.AI
 {
+    public interface IAIScoreboardController
+    {
+        AICrossesModel CurrentState { get; }
+    }
     [UsedImplicitly]
-    public class AIScoreboardController : IScoreboardController
+    public class AIScoreboardController : IScoreboardController, IAIScoreboardController
     {
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
+
+        public AICrossesModel CurrentState { get; private set; }
 
         [Inject(Id = "AI")] private IScoreboardModel scoreboard;
         private readonly SignalBus signalBus;
@@ -24,10 +30,13 @@ namespace Scoreboard.AI
             this.signalBus = signalBus;
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
+            CurrentState = new AICrossesModel();
         }
 
         public void AddCross(SlotColor color)
         {
+            CurrentState.BlueSlots[3].CurrentSlotState = SlotState.Crossed;
+            EndTurn();
         }
 
 

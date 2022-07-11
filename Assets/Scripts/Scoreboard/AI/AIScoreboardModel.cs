@@ -7,6 +7,7 @@ namespace Scoreboard.AI
     [UsedImplicitly]
     public class AIScoreboardModel : IScoreboardModel
     {
+        // this is used to hold data of points of AI player
         private IReactiveProperty<int> RedPoints { get; }
         private IReactiveProperty<int> YellowPoints { get; }
         private IReactiveProperty<int> GreenPoints { get; }
