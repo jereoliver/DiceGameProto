@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Scoreboard.AI
 {
-    public class AICrossesModel
+    public class AISlotsModel
     {
         // this is used to hold data of scoreboard runtime status of AIPlayer
         // and to help AIScoreboardController to make game decisions
@@ -12,7 +13,17 @@ namespace Scoreboard.AI
         public List<AISlot> GreenSlots;
         public List<AISlot> BlueSlots;
 
-        public AICrossesModel()
+        public List<AISlot> GetAllSlots()
+        {
+            var slots = RedSlots.ToList();
+            slots.AddRange(YellowSlots);
+            slots.AddRange(GreenSlots);
+            slots.AddRange(BlueSlots);
+            return slots;
+
+        }
+
+        public AISlotsModel()
         {
             RedSlots = new List<AISlot>();
             YellowSlots = new List<AISlot>();

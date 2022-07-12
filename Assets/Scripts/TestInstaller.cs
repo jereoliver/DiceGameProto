@@ -18,7 +18,6 @@ public class TestInstaller : Installer<TestInstaller>
         Container.BindInterfacesTo<DiceController>().AsSingle();
         Container.Bind<IScoreboardController>().WithId("Player").To<ScoreboardController>().AsSingle();
         Container.Bind<IScoreboardController>().WithId("AI").To<AIScoreboardController>().AsSingle();
-        Container.Bind<IAIScoreboardController>().To<AIScoreboardController>().AsSingle();
         Container.Bind<IScoreboardModel>().WithId("Player").To<ScoreboardModel>().AsSingle();
         Container.Bind<IScoreboardModel>().WithId("AI").To<AIScoreboardModel>().AsSingle();
         Container.BindInterfacesTo<GameFlowController>().AsSingle();

@@ -7,9 +7,8 @@ namespace Scoreboard.AI
     {
         [Range(2, 13)] [SerializeField] private int number;
         [SerializeField] private SlotColor slotColor;
-        [SerializeField] private Color invisible;
-        [SerializeField] private Color visible;
-        
+
+
         private Image image;
         public int Number => number;
         public SlotColor SlotColor => slotColor;
@@ -19,9 +18,9 @@ namespace Scoreboard.AI
             image = GetComponent<Image>();
         }
 
-        public void SetCrossedState(bool crossed)
+        public void SetCrossedState(bool isCrossed)
         {
-            image.color = crossed ? visible : invisible;
+            image.enabled = isCrossed;
         }
     }
 }

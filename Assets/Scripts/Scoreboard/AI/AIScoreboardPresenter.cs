@@ -25,7 +25,6 @@ namespace Scoreboard.AI
         private bool currentlyOwnTurn;
 
         [Inject(Id = "AI")] private IScoreboardController scoreboardController;
-        [Inject] private IAIScoreboardController aiScoreboardController;
         [Inject(Id = "AI")] private IScoreboardModel scoreboard;
         [Inject] private SignalBus signalBus;
 
@@ -146,10 +145,11 @@ namespace Scoreboard.AI
         private void UpdateSlotPresenters()
         {
             // update slotPresenters to reflect AICrossesModel
-            var status = aiScoreboardController.CurrentState;
-            foreach (var slot in status.RedSlots.Where(t => t.CurrentSlotState == SlotState.Crossed))
-            foreach (var slotPresenter in slotPresenters.Where(t =>
-                         t.Number == slot.Number && t.SlotColor == slot.SlotColor)) // todo more checks?
+            var status = scoreboardController.CurrentSlotsState;
+            var slots = status.GetAllSlots();
+            foreach (var slot in slots.Where(t => t.CurrentSlotState == SlotState.Crossed))
+            foreach (var slotPresenter in slotPresenters.Where(presenter =>
+                         presenter.Number == slot.Number && presenter.SlotColor == slot.SlotColor)) // todo more checks?
             {
                 slotPresenter.SetCrossedState(true);
             }
