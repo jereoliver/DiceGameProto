@@ -14,7 +14,14 @@ namespace Dice
         IReadOnlyReactiveProperty<int> CurrentValueForYellow { get; }
         IReadOnlyReactiveProperty<int> CurrentValueForGreen { get; }
         IReadOnlyReactiveProperty<int> CurrentValueForBlue { get; }
+
+        /// <summary>
+        /// Roll the dice to get new values for them
+        /// </summary>
         void Roll();
+        /// <summary>
+        /// Get current possibilities to score in scoreboard according to dices current values
+        /// </summary>
         ScorePossibilitiesModel GetScorePossibilities();
     }
 

@@ -1,6 +1,5 @@
 using UniRx;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Zenject;
 
@@ -11,7 +10,7 @@ namespace GameFlow
         [SerializeField] private Button startGameButton;
         [SerializeField] private Button gameOverButton;
         [SerializeField] private GameObject gameOverView;
-        [FormerlySerializedAs("RestartButtonOfGameOverView")] [SerializeField] private Button restartButtonOfGameOverView;
+        [SerializeField] private Button restartButtonOfGameOverView;
 
         [Inject] private IGameFlowController gameFlowController;
         

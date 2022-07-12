@@ -1,41 +1,39 @@
 using System;
-using DiceGame;
+using Extensions;
 using GameFlow.Signals;
 using JetBrains.Annotations;
 using Scoreboard.AI;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace Scoreboard
 {
     public interface IScoreboardController
     {
-        IReadOnlyReactiveProperty<bool> IsActiveTurn { get; } // this helps ScoreboardPresenter to visualize state
-        IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; } // listen to this from GameFlowController
+        IReadOnlyReactiveProperty<bool> IsActiveTurn { get; } // This helps ScoreboardPresenters to visualize turns
+        IReadOnlyReactiveProperty<bool> ThisTurnEnded { get; } // This is listened in GameFlowController to know when all players have ended their turn
         void AddCross(SlotColor color);
         void AddError();
         void StartTurn(bool activeTurn);
         void EndTurn();
-        AISlotsModel CurrentSlotsState { get; } // this is only used for AIScoreboardContoller
+        AISlotsModel CurrentSlotsState { get; } // This is currently only used for AIScoreboardController.
     }
 
     [UsedImplicitly]
     public class ScoreboardController : IScoreboardController
     {
-        private IReactiveProperty<bool> IsActiveTurn { get; }
-        private IReactiveProperty<bool> ThisTurnEnded { get; }
-
-
         private int amountOfRedCrosses;
         private int amountOfYellowCrosses;
         private int amountOfGreenCrosses;
         private int amountOfBlueCrosses;
         private int amountOfErrors;
-
-        [Inject(Id = "Player")] private IScoreboardModel scoreboard; // todo inject correct one with Id or create
+        
         private readonly SignalBus signalBus;
-
+        [Inject(Id = "Player")] private IScoreboardModel scoreboard; // todo inject correct one with Id or create
+        private IReactiveProperty<bool> IsActiveTurn { get; }
+        private IReactiveProperty<bool> ThisTurnEnded { get; }
+        IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
+        IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
         public AISlotsModel CurrentSlotsState { get; }
 
         public ScoreboardController(SignalBus signalBus)
@@ -46,8 +44,6 @@ namespace Scoreboard
             ThisTurnEnded = new ReactiveProperty<bool>();
         }
 
-        IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
-        IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
 
         public void AddCross(SlotColor color)
         {
@@ -95,7 +91,6 @@ namespace Scoreboard
 
         public void EndTurn()
         {
-            Debug.Log("turn ended");
             ThisTurnEnded.Value = true;
         }
 

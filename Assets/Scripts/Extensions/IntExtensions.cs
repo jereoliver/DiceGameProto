@@ -1,4 +1,4 @@
-namespace DiceGame
+namespace Extensions
 {
     public static class IntExtensions
     {

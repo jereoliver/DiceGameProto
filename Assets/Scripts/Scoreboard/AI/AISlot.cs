@@ -2,10 +2,10 @@ namespace Scoreboard.AI
 {
     public class AISlot
     {
-        public SlotColor SlotColor;
-        public int Number;
-        public bool IsLastSlot;
-        public bool AscendingNumbers;
+        public readonly SlotColor SlotColor;
+        public readonly int Number;
+        public readonly bool IsLastSlot;
+        public readonly bool AscendingNumbers;
         public SlotState CurrentSlotState;
 
         public AISlot(SlotColor slotColor, int number, bool isLastSlot, bool ascendingNumbers,

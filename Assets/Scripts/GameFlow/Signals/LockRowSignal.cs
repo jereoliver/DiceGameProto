@@ -4,7 +4,7 @@ namespace GameFlow.Signals
 {
     public class LockRowSignal
     {
-        public SlotColor ColorToLock;
+        public readonly SlotColor ColorToLock;
 
         public LockRowSignal(SlotColor colorToLock)
         {

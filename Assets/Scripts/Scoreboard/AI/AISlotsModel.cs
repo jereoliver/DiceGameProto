@@ -4,11 +4,10 @@ using System.Linq;
 
 namespace Scoreboard.AI
 {
+    // this class is used to hold data of scoreboard runtime status of AIPlayer
+    // and to help AIScoreboardController to make game decisions
     public class AISlotsModel
     {
-        // this is used to hold data of scoreboard runtime status of AIPlayer
-        // and to help AIScoreboardController to make game decisions
-        
         public List<AISlot> RedSlots;
         public List<AISlot> YellowSlots;
         public List<AISlot> GreenSlots;

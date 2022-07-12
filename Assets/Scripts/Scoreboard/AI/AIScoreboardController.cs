@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using DiceGame;
+using Extensions;
 using GameFlow.Signals;
 using JetBrains.Annotations;
 using ScorePossibilities;
 using UniRx;
-using UnityEngine;
 using Zenject;
 
 namespace Scoreboard.AI
@@ -15,25 +14,24 @@ namespace Scoreboard.AI
     [UsedImplicitly]
     public class AIScoreboardController : IScoreboardController, IInitializable, IDisposable
     {
-        private IReactiveProperty<bool> IsActiveTurn { get; }
-        private IReactiveProperty<bool> ThisTurnEnded { get; }
-
-        public AISlotsModel CurrentSlotsState { get; private set; }
-
-        [Inject(Id = "AI")] private IScoreboardModel scoreboard;
-        private readonly SignalBus signalBus;
-        private readonly IScorePossibilitiesController scorePossibilitiesController;
-
         private int amountOfRedCrosses;
         private int amountOfYellowCrosses;
         private int amountOfGreenCrosses;
         private int amountOfBlueCrosses;
         private int amountOfErrors;
 
-        private Dictionary<SlotColor, int> lastCrosses;
+        private readonly SignalBus signalBus;
+        private readonly IScorePossibilitiesController scorePossibilitiesController;
+        private readonly Dictionary<SlotColor, int> lastCrosses;
+
+        [Inject(Id = "AI")] private IScoreboardModel scoreboard;
+
+        private IReactiveProperty<bool> IsActiveTurn { get; }
+        private IReactiveProperty<bool> ThisTurnEnded { get; }
 
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
         IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
+        public AISlotsModel CurrentSlotsState { get; private set; }
 
         public AIScoreboardController(SignalBus signalBus, IScorePossibilitiesController scorePossibilitiesController)
         {
@@ -50,7 +48,17 @@ namespace Scoreboard.AI
                 {SlotColor.Blue, -1}
             };
         }
+        
+        public void Initialize()
+        {
+            signalBus.Subscribe<LockRowSignal>(LockRow);
+        }
 
+        public void Dispose()
+        {
+            signalBus.TryUnsubscribe<LockRowSignal>(LockRow);
+        }
+        
         public void AddCross(SlotColor color)
         {
             AddOneToAmountOfCrosses(color);
@@ -74,28 +82,45 @@ namespace Scoreboard.AI
 
             UpdateTotalPoints();
         }
+        
+        public void AddError()
+        {
+            amountOfErrors++;
+            scoreboard.SetPoints(ScoreType.Error, amountOfErrors * 5);
+            UpdateTotalPoints();
+            if (amountOfErrors >= 4)
+            {
+                signalBus.Fire(new GameOverSignal());
+            }
 
+            EndTurn();
+        }
+
+        public void StartTurn(bool activeTurn)
+        {
+            StartTurnAsync(activeTurn).Forget();
+        }
+        
         private void AddOneToAmountOfCrosses(SlotColor slotColor)
         {
-            if (slotColor == SlotColor.Red)
+            switch (slotColor)
             {
-                amountOfRedCrosses++;
-                OpenLastSlotIfEnoughCrosses(slotColor, amountOfRedCrosses);
-            }
-            else if (slotColor == SlotColor.Yellow)
-            {
-                amountOfYellowCrosses++;
-                OpenLastSlotIfEnoughCrosses(slotColor, amountOfYellowCrosses);
-            }
-            else if (slotColor == SlotColor.Green)
-            {
-                amountOfGreenCrosses++;
-                OpenLastSlotIfEnoughCrosses(slotColor, amountOfGreenCrosses);
-            }
-            else if (slotColor == SlotColor.Blue)
-            {
-                amountOfBlueCrosses++;
-                OpenLastSlotIfEnoughCrosses(slotColor, amountOfBlueCrosses);
+                case SlotColor.Red:
+                    amountOfRedCrosses++;
+                    OpenLastSlotIfEnoughCrosses(slotColor, amountOfRedCrosses);
+                    break;
+                case SlotColor.Yellow:
+                    amountOfYellowCrosses++;
+                    OpenLastSlotIfEnoughCrosses(slotColor, amountOfYellowCrosses);
+                    break;
+                case SlotColor.Green:
+                    amountOfGreenCrosses++;
+                    OpenLastSlotIfEnoughCrosses(slotColor, amountOfGreenCrosses);
+                    break;
+                case SlotColor.Blue:
+                    amountOfBlueCrosses++;
+                    OpenLastSlotIfEnoughCrosses(slotColor, amountOfBlueCrosses);
+                    break;
             }
         }
 
@@ -120,25 +145,7 @@ namespace Scoreboard.AI
                 slotToOpen.CurrentSlotState = SlotState.UnavailableByScore;
             }
         }
-
-        public void AddError()
-        {
-            amountOfErrors++;
-            scoreboard.SetPoints(ScoreType.Error, amountOfErrors * 5);
-            UpdateTotalPoints();
-            if (amountOfErrors >= 4)
-            {
-                signalBus.Fire(new GameOverSignal());
-            }
-
-            EndTurn();
-        }
-
-        public void StartTurn(bool activeTurn)
-        {
-            StartTurnAsync(activeTurn).Forget();
-        }
-
+        
         private async UniTask StartTurnAsync(bool activeTurn)
         {
             IsActiveTurn.Value = activeTurn;
@@ -167,7 +174,7 @@ namespace Scoreboard.AI
                 }
 
                 // Option 2 for evaluation 1
-                var colorSlotsWithoutGap = GetColorSlotsToCross(possibleGaps);
+                var colorSlotsWithoutGap = GetCrossableColorSlots(possibleGaps);
 
                 if (colorSlotsWithoutGap.Count < 0)
                 {
@@ -205,7 +212,7 @@ namespace Scoreboard.AI
         private void EvaluateSecondActionForOwnTurn()
         {
             // now crosses color sum as well if one founded without gaps, other way just ends turn
-            var colorSlotsWithoutGap = GetColorSlotsToCross(0);
+            var colorSlotsWithoutGap = GetCrossableColorSlots(0);
 
             if (colorSlotsWithoutGap.Count < 0)
             {
@@ -232,7 +239,7 @@ namespace Scoreboard.AI
             EndTurn();
         }
 
-        private List<AISlotColorNumberPair> GetColorSlotsToCross(int possibleGaps)
+        private List<AISlotColorNumberPair> GetCrossableColorSlots(int possibleGaps)
         {
             var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
 
@@ -279,12 +286,11 @@ namespace Scoreboard.AI
                          t.CurrentSlotState == SlotState.UnavailableByScore && t.Number == whiteDiceSum))
             {
                 var newPossibleSlot = new AISlotColorNumberPair(slot.SlotColor, slot.Number);
-                // add to list only if one slot to left is crossed or one after that 
 
                 var indexOfSlot = CurrentSlotsState.GetIndexWithColorNumberPair(newPossibleSlot);
-                var maximumGapIsOneSlot = indexOfSlot > lastCrosses[slot.SlotColor] &&
+                var doesNotLeaveTooBigGap = indexOfSlot > lastCrosses[slot.SlotColor] &&
                                           indexOfSlot <= lastCrosses[slot.SlotColor] + possibleGaps + 1;
-                if (maximumGapIsOneSlot)
+                if (doesNotLeaveTooBigGap)
                 {
                     possibleSlotsToCrossWithCommonSum.Add(newPossibleSlot);
                 }
@@ -295,7 +301,6 @@ namespace Scoreboard.AI
 
         public void EndTurn()
         {
-            Debug.Log("AI turn ended");
             ThisTurnEnded.Value = true;
         }
 
@@ -308,12 +313,10 @@ namespace Scoreboard.AI
             AddCross(colorNumberPair.SlotColor);
             LockPreviousSlots(colorNumberPair);
 
-            // check if last then cross lock slot and lock the row
             var isLastSlot = CheckIfSlotIsLast();
-
             if (isLastSlot)
             {
-                // todo cross lock slot to get points and visualization
+                // todo cross lock slot to get points and visualization for that
                 FireLockRowSignal(colorNumberPair.SlotColor);
             }
 
@@ -403,20 +406,9 @@ namespace Scoreboard.AI
                               scoreboard.ErrorPoints.Value;
             scoreboard.SetPoints(ScoreType.Total, totalPoints);
         }
-
-        public void Initialize()
-        {
-            signalBus.Subscribe<LockRowSignal>(LockRow);
-        }
-
-        public void Dispose()
-        {
-            signalBus.TryUnsubscribe<LockRowSignal>(LockRow);
-        }
-
+        
         private void LockRow(LockRowSignal lockRowSignal)
         {
-            Debug.Log("row locked for AI as well");
             var color = lockRowSignal.ColorToLock;
             var slotsToLock = color switch
             {
@@ -436,6 +428,5 @@ namespace Scoreboard.AI
                 slot.CurrentSlotState = SlotState.Removed;
             }
         }
-        
     }
 }

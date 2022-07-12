@@ -210,7 +210,7 @@ namespace Scoreboard
                     throw new ArgumentOutOfRangeException(nameof(slotColor), slotColor, null);
             }
         }
-        
+
         private void UpdateTotalPointsText(int pointsAmount)
         {
             totalPointsText.text = pointsAmount.ToString();
@@ -220,15 +220,14 @@ namespace Scoreboard
         {
             errorPointsText.text = amount.ToString();
         }
+
         #endregion
-        
+
         private void HandleTurnStarted(bool isOwnTurn)
         {
             ResetSlotsForNewTurn();
             currentlyOwnTurn = isOwnTurn;
             ownTurnIndicator.SetActive(currentlyOwnTurn);
-            Debug.Log("it's now new turn and isOwnTurn is: " + isOwnTurn);
-
             UpdateErrorButtonsState(isOwnTurn);
 
             if (isOwnTurn)
@@ -284,7 +283,7 @@ namespace Scoreboard
             var lastSlot = slotPresenters.First(t =>
                 t.IsLastSlot &&
                 t.SlotColor == slotColor);
-            // set last slot available only if it is currently unavailableYetByRules to prevent setting it always and multiple times available
+            // set last slot available only if it is currently unavailableYetByRules to prevent setting it multiple times 
             if (lastSlot.CurrentSlotState == SlotState.UnavailableYetByRules)
             {
                 lastSlot.SetSlotState(SlotState.Available);
@@ -303,7 +302,7 @@ namespace Scoreboard
                 slot.SetSlotState(SlotState.UnavailableByScore);
             }
         }
-        
+
 
         private void LockRow(LockRowSignal lockRowSignal)
         {

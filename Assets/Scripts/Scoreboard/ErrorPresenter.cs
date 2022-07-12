@@ -15,6 +15,7 @@ namespace Scoreboard
 
         private readonly IReactiveProperty<ErrorButtonState> currentState =
             new ReactiveProperty<ErrorButtonState>(ErrorButtonState.NonInteractable);
+
         private Image image;
 
         public ErrorButtonState CurrentState => currentState.Value;

@@ -32,6 +32,7 @@ namespace GameFlow
         private int playersEndedTurn;
         private int rowsLocked;
         private ReactiveProperty<bool> GameIsOver { get; }
+        IReadOnlyReactiveProperty<bool> IGameFlowController.GameIsOver => GameIsOver;
 
         public GameFlowController(SignalBus signalBus, IDiceController diceController,
             IScorePossibilitiesController scorePossibilitiesController)
@@ -42,13 +43,10 @@ namespace GameFlow
             GameIsOver = new ReactiveProperty<bool>();
         }
 
-        IReadOnlyReactiveProperty<bool> IGameFlowController.GameIsOver => GameIsOver;
-
         public void Initialize()
         {
             playerScoreboardController.ThisTurnEnded.Subscribe(HandleTurnChanged);
             aiScoreboardController.ThisTurnEnded.Subscribe(HandleTurnChanged);
-            Debug.Log("GameFlowController initialized and ThisTurnEnded subscribed");
             signalBus.Subscribe<GameOverSignal>(QueueGameOverToNextTurn);
             signalBus.Subscribe<LockRowSignal>(LockRow);
         }
@@ -71,35 +69,29 @@ namespace GameFlow
             StartNewTurn();
         }
 
-
-        private void QueueGameOverToNextTurn()
-        {
-            isGameOn = false;
-            Debug.Log("Game over NEXT ROUND");
-        }
-
         public void Restart()
         {
-            SceneManager.LoadScene(0); // todo this could be prettier
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         private void LockRow(LockRowSignal lockRowSignal)
         {
-            Debug.Log(lockRowSignal.ColorToLock + " row locked now");
             rowsLocked++;
             if (rowsLocked >= 2)
             {
-                // game over
                 QueueGameOverToNextTurn();
             }
+        }
+        
+        private void QueueGameOverToNextTurn()
+        {
+            isGameOn = false;
         }
 
         private void StartNewTurn()
         {
-            // check first if row should be locked now.
             if (!isGameOn)
             {
-                Debug.Log("NOW game over");
                 GameIsOver.Value = true;
             }
 
@@ -120,7 +112,6 @@ namespace GameFlow
             }
 
             playersEndedTurn++;
-            Debug.Log("one turn ended now and amount of playersEnded turn is: " + playersEndedTurn);
             if (playersEndedTurn >= 2)
             {
                 StartNewTurn();

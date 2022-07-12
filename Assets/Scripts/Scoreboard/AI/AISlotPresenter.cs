@@ -8,7 +8,6 @@ namespace Scoreboard.AI
         [Range(2, 13)] [SerializeField] private int number;
         [SerializeField] private SlotColor slotColor;
 
-
         private Image image;
         public int Number => number;
         public SlotColor SlotColor => slotColor;

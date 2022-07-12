@@ -57,7 +57,7 @@ namespace Scoreboard.AI
         }
 
         #region UpdatePointsTexts
-        
+
         private void UpdateTotalPointsText(int pointsAmount)
         {
             totalPointsText.text = pointsAmount.ToString();
@@ -86,7 +86,6 @@ namespace Scoreboard.AI
         private void HandleUpdatedPoints(int pointsAmount, SlotColor slotColor)
         {
             UpdatePointsText(pointsAmount, slotColor);
-            
         }
 
         private void UpdatePointsText(int pointsAmount, SlotColor slotColor)
@@ -109,9 +108,9 @@ namespace Scoreboard.AI
                     throw new ArgumentOutOfRangeException(nameof(slotColor), slotColor, null);
             }
         }
-        
+
         #endregion
-        
+
         private void HandleErrorPointsChanged(int amount)
         {
             // todo add check for amount and use that to visualize errors
@@ -128,8 +127,6 @@ namespace Scoreboard.AI
         {
             currentlyOwnTurn = isOwnTurn;
             ownTurnIndicator.SetActive(currentlyOwnTurn);
-            Debug.Log("it's now AI's new turn and isOwnTurn is: " + isOwnTurn);
-            
         }
 
         private void HandleTurnEnded(bool turnEnded)
@@ -157,8 +154,7 @@ namespace Scoreboard.AI
 
         private void LockRow(LockRowSignal lockRowSignal)
         {
-            // todo some own row lock implementation
-            // todo 
+            // todo create visualization for locked rows in AIScoreboard
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Scoreboard
         private IReactiveProperty<int> BluePoints { get; }
         private IReactiveProperty<int> ErrorPoints { get; }
         private IReactiveProperty<int> TotalPoints { get; }
-        
+
         public void SetPoints(ScoreType scoreType, int amount)
         {
             switch (scoreType)
@@ -61,6 +61,7 @@ namespace Scoreboard
             TotalPoints = new ReactiveProperty<int>();
             ErrorPoints = new ReactiveProperty<int>();
         }
+
         IReadOnlyReactiveProperty<int> IScoreboardModel.RedPoints => RedPoints;
         IReadOnlyReactiveProperty<int> IScoreboardModel.YellowPoints => YellowPoints;
         IReadOnlyReactiveProperty<int> IScoreboardModel.GreenPoints => GreenPoints;

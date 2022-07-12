@@ -23,16 +23,22 @@ namespace Scoreboard
         private Image image;
         private Button button;
         private IReactiveProperty<SlotState> slotState;
+        
         public SlotState CurrentSlotState => slotState.Value;
-
         public bool IsCrossed { get; private set; }
-
         public bool IsLockSlot => isLockSlot;
         public bool IsLastSlot => isLastSlot;
         public int Number => number;
         public SlotColor SlotColor => slotColor;
         public bool AscendingNumbers => ascendingNumbers;
 
+        private void Awake()
+        {
+            GetComponents();
+            InitSlotsState();
+            button.onClick.AddListener(HandleButtonPressed);
+        }
+        
         public void SetSlotState(SlotState newState)
         {
             slotState.Value = newState;
@@ -44,12 +50,7 @@ namespace Scoreboard
             SetSlotState(SlotState.Crossed);
         }
 
-        private void Awake()
-        {
-            GetComponents();
-            InitSlotsState();
-            button.onClick.AddListener(HandleButtonPressed);
-        }
+        
 
         private void GetComponents()
         {
@@ -65,7 +66,6 @@ namespace Scoreboard
             }
             else
             {
-                // todo change later to init to unavailable and set available from game state
                 slotState = new ReactiveProperty<SlotState>(SlotState.UnavailableByScore);
             }
 
