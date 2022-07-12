@@ -1,5 +1,8 @@
 Dice Game Proto
--
+
+![image](DiceGamePhoto.png)
+
+
 - This is my personal project that I created to practice applying my skills learnt in work to a new, own **Unity** project. This project also works as my code sample project, since this gives nice overview of my code style and level currently. This is all very work-in-progress.
 
 
