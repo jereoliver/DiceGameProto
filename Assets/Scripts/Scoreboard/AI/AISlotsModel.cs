@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,7 +21,18 @@ namespace Scoreboard.AI
             slots.AddRange(GreenSlots);
             slots.AddRange(BlueSlots);
             return slots;
+        }
 
+        public int GetIndexWithColorNumberPair(AISlotColorNumberPair colorNumberPair)
+        {
+            return colorNumberPair.SlotColor switch
+            {
+                SlotColor.Red => RedSlots.FindIndex(t => t.Number == colorNumberPair.Number),
+                SlotColor.Yellow => YellowSlots.FindIndex(t => t.Number == colorNumberPair.Number),
+                SlotColor.Green => GreenSlots.FindIndex(t => t.Number == colorNumberPair.Number),
+                SlotColor.Blue => BlueSlots.FindIndex(t => t.Number == colorNumberPair.Number),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         public AISlotsModel()

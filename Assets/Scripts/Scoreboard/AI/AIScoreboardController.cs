@@ -29,8 +29,8 @@ namespace Scoreboard.AI
         private int amountOfGreenCrosses;
         private int amountOfBlueCrosses;
         private int amountOfErrors;
-        
 
+        private Dictionary<SlotColor, int> lastCrosses;
 
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
         IReadOnlyReactiveProperty<bool> IScoreboardController.ThisTurnEnded => ThisTurnEnded;
@@ -42,6 +42,13 @@ namespace Scoreboard.AI
             IsActiveTurn = new ReactiveProperty<bool>();
             ThisTurnEnded = new ReactiveProperty<bool>();
             CurrentSlotsState = new AISlotsModel();
+            lastCrosses = new Dictionary<SlotColor, int>
+            {
+                {SlotColor.Red, -1},
+                {SlotColor.Yellow, -1},
+                {SlotColor.Green, -1},
+                {SlotColor.Blue, -1}
+            };
         }
 
         public void AddCross(SlotColor color)
@@ -114,24 +121,41 @@ namespace Scoreboard.AI
 
         private void EvaluateActionForOthersTurn()
         {
-            var whiteDiceSum = scorePossibilitiesController.CurrentWhiteDiceSum;
+            var possibleSlotsToCross = GetSlotsToCrossWithCommonSum(1);
 
+            if (possibleSlotsToCross.Count == 1)
+            {
+                CrossASlot(possibleSlotsToCross[0]);
+            }
+            else if (possibleSlotsToCross.Count > 1)
+            {
+                CrossASlot(possibleSlotsToCross[0]); // todo check best option
+            }
+
+            EndTurn();
+        }
+
+        private List<AISlotColorNumberPair> GetSlotsToCrossWithCommonSum(int possibleGaps)
+        {
+            var whiteDiceSum = scorePossibilitiesController.CurrentWhiteDiceSum;
             var possibleSlotsToCrossWithCommonSum = new List<AISlotColorNumberPair>();
 
             foreach (var slot in CurrentSlotsState.GetAllSlots().Where(t =>
                          t.CurrentSlotState == SlotState.UnavailableByScore && t.Number == whiteDiceSum))
             {
                 var newPossibleSlot = new AISlotColorNumberPair(slot.SlotColor, slot.Number);
-                possibleSlotsToCrossWithCommonSum.Add(newPossibleSlot);
+                // add to list only if one slot to left is crossed or one after that 
+
+                var indexOfSlot = CurrentSlotsState.GetIndexWithColorNumberPair(newPossibleSlot);
+                var maximumGapIsOneSlot = indexOfSlot > lastCrosses[slot.SlotColor] &&
+                                          indexOfSlot <= lastCrosses[slot.SlotColor] + possibleGaps + 1;
+                if (maximumGapIsOneSlot)
+                {
+                    possibleSlotsToCrossWithCommonSum.Add(newPossibleSlot);
+                }
             }
 
-            if (possibleSlotsToCrossWithCommonSum.Count >
-                0) // todo evaluate if there is common sum that would leave no gap
-            {
-                CrossASlot(possibleSlotsToCrossWithCommonSum[0]); // check best if multiple
-            }
-
-            EndTurn();
+            return possibleSlotsToCrossWithCommonSum;
         }
 
         public void EndTurn()
@@ -164,7 +188,8 @@ namespace Scoreboard.AI
                     }
                     case SlotColor.Yellow:
                     {
-                        foreach (var slot in CurrentSlotsState.YellowSlots.Where(t => t.Number == colorNumberPair.Number))
+                        foreach (var slot in CurrentSlotsState.YellowSlots.Where(
+                                     t => t.Number == colorNumberPair.Number))
                         {
                             slot.CurrentSlotState = SlotState.Crossed;
                         }
@@ -173,7 +198,8 @@ namespace Scoreboard.AI
                     }
                     case SlotColor.Green:
                     {
-                        foreach (var slot in CurrentSlotsState.GreenSlots.Where(t => t.Number == colorNumberPair.Number))
+                        foreach (var slot in
+                                 CurrentSlotsState.GreenSlots.Where(t => t.Number == colorNumberPair.Number))
                         {
                             slot.CurrentSlotState = SlotState.Crossed;
                         }
@@ -198,20 +224,7 @@ namespace Scoreboard.AI
 
         private void LockPreviousSlots(AISlotColorNumberPair colorNumberPair)
         {
-            var correctSlots = colorNumberPair.SlotColor switch
-            {
-                SlotColor.Red => CurrentSlotsState.RedSlots,
-                SlotColor.Yellow => CurrentSlotsState.YellowSlots,
-                SlotColor.Green => CurrentSlotsState.GreenSlots,
-                SlotColor.Blue => CurrentSlotsState.BlueSlots,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            foreach (var slot in correctSlots.Where(t => 
-                         t.Number < colorNumberPair.Number && t.CurrentSlotState == SlotState.UnavailableByScore))
-            {
-                slot.CurrentSlotState = SlotState.Removed;
-            }
+            lastCrosses[colorNumberPair.SlotColor] = CurrentSlotsState.GetIndexWithColorNumberPair(colorNumberPair);
         }
 
         private void FireLockRowSignal(SlotColor slotColor)
