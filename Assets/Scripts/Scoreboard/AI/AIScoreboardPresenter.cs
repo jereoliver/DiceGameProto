@@ -19,7 +19,7 @@ namespace Scoreboard.AI
         [SerializeField] private TMP_Text errorPointsText;
         [SerializeField] private GameObject slotsParent;
         [SerializeField] private GameObject ownTurnIndicator;
-        [SerializeField] private List<ErrorPresenter> errorPresenters;
+        [SerializeField] private List<AIErrorPresenter> errorPresenters;
 
         private readonly List<AISlotPresenter> slotPresenters = new List<AISlotPresenter>();
         private bool currentlyOwnTurn;
@@ -119,7 +119,7 @@ namespace Scoreboard.AI
             var amountOfCrosses = amount / 5;
             for (var i = 0; i < amountOfCrosses; i++)
             {
-                errorPresenters[i].SetErrorButtonState(ErrorButtonState.Crossed);
+                errorPresenters[i].SetCrossStatus(true); // todo bug fix
                 // todo check that math works
             }
         }

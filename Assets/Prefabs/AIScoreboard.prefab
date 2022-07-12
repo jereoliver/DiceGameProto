@@ -5574,10 +5574,10 @@ MonoBehaviour:
   slotsParent: {fileID: 5073695948095979359}
   ownTurnIndicator: {fileID: 1992685090608872030}
   errorPresenters:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 6252869270591347561}
+  - {fileID: 1813458453558258244}
+  - {fileID: 1754837271805487490}
+  - {fileID: 5540596496743723578}
 --- !u!1 &5073695948095979359
 GameObject:
   m_ObjectHideFlags: 0

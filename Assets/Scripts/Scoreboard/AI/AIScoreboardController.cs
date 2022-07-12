@@ -87,6 +87,8 @@ namespace Scoreboard.AI
             {
                 signalBus.Fire(new GameOverSignal());
             }
+
+            EndTurn();
         }
 
         public void StartTurn(bool activeTurn)
@@ -96,12 +98,12 @@ namespace Scoreboard.AI
 
         private async UniTask StartTurnAsync(bool activeTurn)
         {
+            IsActiveTurn.Value = activeTurn;
             ThisTurnEnded.Value = false;
-            await UniTask.Delay(TimeSpan.FromSeconds(2));
-            // todo implement playing logic here
+            await UniTask.Delay(TimeSpan.FromSeconds(2)); // mock waiting time for AI player
             if (activeTurn)
             {
-                EvaluateActionForOwnTurn();
+                EvaluateFirstActionForOwnTurn();
             }
             else
             {
@@ -109,14 +111,57 @@ namespace Scoreboard.AI
             }
         }
 
-        private void EvaluateActionForOwnTurn()
+        private void EvaluateFirstActionForOwnTurn()
         {
-            // do something on own turn
-            var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
-            // combine those with AICrossesModel
-            // calculate what should do
-            // choices are: white, white+color, color, error
-            EndTurn(); // now just always end own turn right away
+            // Option 1 for evaluation 1
+            var commonSlotsWithoutGap = GetSlotsToCrossWithCommonSum(0);
+            if (commonSlotsWithoutGap.Count > 0)
+            {
+                CrossASlot(commonSlotsWithoutGap[0]);
+                EvaluateSecondActionForOwnTurn();
+            }
+
+            // Option 2 for evaluation 1
+            var colorSlotsWithoutGap = GetColorSlotsToCross(0);
+
+            if (colorSlotsWithoutGap.Count < 0)
+            {
+                CrossASlot(colorSlotsWithoutGap[0]);
+                EndTurn();
+            }
+
+            // Option 3 for evaluation 1
+            var commonSlotsWithGap = GetSlotsToCrossWithCommonSum(1);
+            if (commonSlotsWithGap.Count > 0)
+            {
+                CrossASlot(commonSlotsWithGap[0]);
+                // progress into second evaluation
+            }
+
+            // Option 4 for evaluation 1
+            var colorSlotsWithGap = GetColorSlotsToCross(1);
+
+            if (colorSlotsWithGap.Count < 0)
+            {
+                CrossASlot(colorSlotsWithGap[0]);
+                EndTurn();
+            }
+
+            // Option 5 for evaluation 1
+            AddError();
+        }
+
+        private void EvaluateSecondActionForOwnTurn()
+        {
+            // now crosses color sum as well if one founded without gaps, other way just ends turn
+            var colorSlotsWithoutGap = GetColorSlotsToCross(0);
+
+            if (colorSlotsWithoutGap.Count < 0)
+            {
+                CrossASlot(colorSlotsWithoutGap[0]);
+            }
+
+            EndTurn();
         }
 
         private void EvaluateActionForOthersTurn()
@@ -133,6 +178,44 @@ namespace Scoreboard.AI
             }
 
             EndTurn();
+        }
+
+        private List<AISlotColorNumberPair> GetColorSlotsToCross(int possibleGaps)
+        {
+            var scorePossibilities = scorePossibilitiesController.CurrentScorePossibilities;
+
+            var possibleSlotsToCross = new List<AISlotColorNumberPair>();
+
+            AddPossibleSlotsByColor(scorePossibilities.RedDiceSums, CurrentSlotsState.RedSlots);
+            AddPossibleSlotsByColor(scorePossibilities.YellowDiceSums, CurrentSlotsState.YellowSlots);
+            AddPossibleSlotsByColor(scorePossibilities.GreenDiceSums, CurrentSlotsState.GreenSlots);
+            AddPossibleSlotsByColor(scorePossibilities.BlueDiceSums, CurrentSlotsState.BlueSlots);
+
+            return possibleSlotsToCross;
+
+            void AddPossibleSlotsByColor(List<int> colorScorePossibilities, List<AISlot> currentColorSlots)
+            {
+                foreach (var slot in currentColorSlots.Where(t =>
+                             t.CurrentSlotState == SlotState.UnavailableByScore))
+                {
+                    foreach (var scorePossibility in colorScorePossibilities)
+                    {
+                        if (slot.Number != scorePossibility)
+                        {
+                            continue;
+                        }
+
+                        var newPossibleSlot = new AISlotColorNumberPair(slot.SlotColor, slot.Number);
+                        var indexOfSlot = CurrentSlotsState.GetIndexWithColorNumberPair(newPossibleSlot);
+                        var doesNotLeaveTooBigGap = indexOfSlot > lastCrosses[slot.SlotColor] &&
+                                                    indexOfSlot <= lastCrosses[slot.SlotColor] + possibleGaps + 1;
+                        if (doesNotLeaveTooBigGap)
+                        {
+                            possibleSlotsToCross.Add(newPossibleSlot);
+                        }
+                    }
+                }
+            }
         }
 
         private List<AISlotColorNumberPair> GetSlotsToCrossWithCommonSum(int possibleGaps)
