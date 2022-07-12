@@ -13,7 +13,7 @@ using Zenject;
 namespace Scoreboard.AI
 {
     [UsedImplicitly]
-    public class AIScoreboardController : IScoreboardController
+    public class AIScoreboardController : IScoreboardController, IInitializable, IDisposable
     {
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
@@ -53,22 +53,19 @@ namespace Scoreboard.AI
 
         public void AddCross(SlotColor color)
         {
+            AddOneToAmountOfCrosses(color);
             switch (color)
             {
                 case SlotColor.Red:
-                    amountOfRedCrosses++;
                     scoreboard.SetPoints(ScoreType.Red, amountOfRedCrosses.ConvertAmountOfCrossesToPoints());
                     break;
                 case SlotColor.Yellow:
-                    amountOfYellowCrosses++;
                     scoreboard.SetPoints(ScoreType.Yellow, amountOfYellowCrosses.ConvertAmountOfCrossesToPoints());
                     break;
                 case SlotColor.Green:
-                    amountOfGreenCrosses++;
                     scoreboard.SetPoints(ScoreType.Green, amountOfGreenCrosses.ConvertAmountOfCrossesToPoints());
                     break;
                 case SlotColor.Blue:
-                    amountOfBlueCrosses++;
                     scoreboard.SetPoints(ScoreType.Blue, amountOfBlueCrosses.ConvertAmountOfCrossesToPoints());
                     break;
                 default:
@@ -76,6 +73,52 @@ namespace Scoreboard.AI
             }
 
             UpdateTotalPoints();
+        }
+
+        private void AddOneToAmountOfCrosses(SlotColor slotColor)
+        {
+            if (slotColor == SlotColor.Red)
+            {
+                amountOfRedCrosses++;
+                OpenLastSlotIfEnoughCrosses(slotColor, amountOfRedCrosses);
+            }
+            else if (slotColor == SlotColor.Yellow)
+            {
+                amountOfYellowCrosses++;
+                OpenLastSlotIfEnoughCrosses(slotColor, amountOfYellowCrosses);
+            }
+            else if (slotColor == SlotColor.Green)
+            {
+                amountOfGreenCrosses++;
+                OpenLastSlotIfEnoughCrosses(slotColor, amountOfGreenCrosses);
+            }
+            else if (slotColor == SlotColor.Blue)
+            {
+                amountOfBlueCrosses++;
+                OpenLastSlotIfEnoughCrosses(slotColor, amountOfBlueCrosses);
+            }
+        }
+
+        private void OpenLastSlotIfEnoughCrosses(SlotColor slotColor, int crossesAmount)
+        {
+            if (crossesAmount < 4)
+            {
+                return;
+            }
+
+            var slotToOpen = slotColor switch
+            {
+                SlotColor.Red => CurrentSlotsState.RedSlots.FirstOrDefault(t => t.IsLastSlot),
+                SlotColor.Yellow => CurrentSlotsState.YellowSlots.FirstOrDefault(t => t.IsLastSlot),
+                SlotColor.Green => CurrentSlotsState.GreenSlots.FirstOrDefault(t => t.IsLastSlot),
+                SlotColor.Blue => CurrentSlotsState.BlueSlots.FirstOrDefault(t => t.IsLastSlot),
+                _ => throw new ArgumentOutOfRangeException(nameof(slotColor), slotColor, null)
+            };
+
+            if (slotToOpen != null)
+            {
+                slotToOpen.CurrentSlotState = SlotState.UnavailableByScore;
+            }
         }
 
         public void AddError()
@@ -113,41 +156,49 @@ namespace Scoreboard.AI
 
         private void EvaluateFirstActionForOwnTurn()
         {
-            // Option 1 for evaluation 1
-            var commonSlotsWithoutGap = GetSlotsToCrossWithCommonSum(0);
-            if (commonSlotsWithoutGap.Count > 0)
+            bool TryToFindFindBestAction(int possibleGaps)
             {
-                CrossASlot(commonSlotsWithoutGap[0]);
-                EvaluateSecondActionForOwnTurn();
+                var commonSlotsWithoutGap = GetSlotsToCrossWithCommonSum(possibleGaps);
+                if (commonSlotsWithoutGap.Count > 0)
+                {
+                    CrossASlot(commonSlotsWithoutGap[0]);
+                    EvaluateSecondActionForOwnTurn();
+                    return true;
+                }
+
+                // Option 2 for evaluation 1
+                var colorSlotsWithoutGap = GetColorSlotsToCross(possibleGaps);
+
+                if (colorSlotsWithoutGap.Count < 0)
+                {
+                    CrossASlot(colorSlotsWithoutGap[0]);
+                    EndTurn();
+                    return true;
+                }
+
+                return false;
             }
 
-            // Option 2 for evaluation 1
-            var colorSlotsWithoutGap = GetColorSlotsToCross(0);
-
-            if (colorSlotsWithoutGap.Count < 0)
+            if (TryToFindFindBestAction(possibleGaps: 1))
             {
-                CrossASlot(colorSlotsWithoutGap[0]);
-                EndTurn();
+                return;
             }
 
-            // Option 3 for evaluation 1
-            var commonSlotsWithGap = GetSlotsToCrossWithCommonSum(1);
-            if (commonSlotsWithGap.Count > 0)
+            if (TryToFindFindBestAction(possibleGaps: 2))
             {
-                CrossASlot(commonSlotsWithGap[0]);
-                // progress into second evaluation
+                return;
             }
 
-            // Option 4 for evaluation 1
-            var colorSlotsWithGap = GetColorSlotsToCross(1);
-
-            if (colorSlotsWithGap.Count < 0)
+            if (TryToFindFindBestAction(possibleGaps: 3))
             {
-                CrossASlot(colorSlotsWithGap[0]);
-                EndTurn();
+                return;
             }
 
-            // Option 5 for evaluation 1
+            if (TryToFindFindBestAction(possibleGaps: 4))
+            {
+                return;
+            }
+
             AddError();
         }
 
@@ -166,6 +217,7 @@ namespace Scoreboard.AI
 
         private void EvaluateActionForOthersTurn()
         {
+            // todo check first if slot without gap
             var possibleSlotsToCross = GetSlotsToCrossWithCommonSum(1);
 
             if (possibleSlotsToCross.Count == 1)
@@ -256,6 +308,15 @@ namespace Scoreboard.AI
             AddCross(colorNumberPair.SlotColor);
             LockPreviousSlots(colorNumberPair);
 
+            // check if last then cross lock slot and lock the row
+            var isLastSlot = CheckIfSlotIsLast();
+
+            if (isLastSlot)
+            {
+                // todo cross lock slot to get points and visualization
+                FireLockRowSignal(colorNumberPair.SlotColor);
+            }
+
             void UpdateCurrentSlotState()
             {
                 switch (colorNumberPair.SlotColor)
@@ -303,6 +364,26 @@ namespace Scoreboard.AI
                             null);
                 }
             }
+
+            bool CheckIfSlotIsLast()
+            {
+                if (colorNumberPair.SlotColor == SlotColor.Red || colorNumberPair.SlotColor == SlotColor.Yellow)
+                {
+                    if (colorNumberPair.Number == 12)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (colorNumberPair.Number == 2)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private void LockPreviousSlots(AISlotColorNumberPair colorNumberPair)
@@ -322,5 +403,39 @@ namespace Scoreboard.AI
                               scoreboard.ErrorPoints.Value;
             scoreboard.SetPoints(ScoreType.Total, totalPoints);
         }
+
+        public void Initialize()
+        {
+            signalBus.Subscribe<LockRowSignal>(LockRow);
+        }
+
+        public void Dispose()
+        {
+            signalBus.TryUnsubscribe<LockRowSignal>(LockRow);
+        }
+
+        private void LockRow(LockRowSignal lockRowSignal)
+        {
+            Debug.Log("row locked for AI as well");
+            var color = lockRowSignal.ColorToLock;
+            var slotsToLock = color switch
+            {
+                SlotColor.Red => CurrentSlotsState.RedSlots.Where(t => t.CurrentSlotState != SlotState.Crossed)
+                    .ToList(),
+                SlotColor.Yellow => CurrentSlotsState.YellowSlots.Where(t => t.CurrentSlotState != SlotState.Crossed)
+                    .ToList(),
+                SlotColor.Green => CurrentSlotsState.GreenSlots.Where(t => t.CurrentSlotState != SlotState.Crossed)
+                    .ToList(),
+                SlotColor.Blue => CurrentSlotsState.BlueSlots.Where(t => t.CurrentSlotState != SlotState.Crossed)
+                    .ToList(),
+                _ => throw new ArgumentOutOfRangeException(nameof(color), color, null)
+            };
+
+            foreach (var slot in slotsToLock)
+            {
+                slot.CurrentSlotState = SlotState.Removed;
+            }
+        }
+        
     }
 }

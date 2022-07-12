@@ -64,7 +64,7 @@ namespace Scoreboard.AI
                 }
             }
 
-            for (var i = 12; i >= 1; i--)
+            for (var i = 12; i > 1; i--)
             {
                 if (i == 2)
                 {
