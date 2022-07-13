@@ -29,7 +29,7 @@ namespace Scoreboard
         private int amountOfErrors;
         
         private readonly SignalBus signalBus;
-        [Inject(Id = "Player")] private IScoreboardModel scoreboard; // todo inject correct one with Id or create
+        [Inject(Id = "Player")] private IScoreboardModel scoreboard;
         private IReactiveProperty<bool> IsActiveTurn { get; }
         private IReactiveProperty<bool> ThisTurnEnded { get; }
         IReadOnlyReactiveProperty<bool> IScoreboardController.IsActiveTurn => IsActiveTurn;
