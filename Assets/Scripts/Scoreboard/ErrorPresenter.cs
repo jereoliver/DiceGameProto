@@ -65,8 +65,8 @@ namespace Scoreboard
 
     public enum ErrorButtonState
     {
-        Crossed,
-        Interactable,
-        NonInteractable
+        Crossed = 0,
+        Interactable = 1,
+        NonInteractable = 2
     }
 }

@@ -8,15 +8,15 @@ namespace Dice
 {
     public interface IDiceController
     {
-        IReadOnlyReactiveProperty<int> CurrentValueForWhite1 { get; }
-        IReadOnlyReactiveProperty<int> CurrentValueForWhite2 { get; }
-        IReadOnlyReactiveProperty<int> CurrentValueForRed { get; }
-        IReadOnlyReactiveProperty<int> CurrentValueForYellow { get; }
-        IReadOnlyReactiveProperty<int> CurrentValueForGreen { get; }
-        IReadOnlyReactiveProperty<int> CurrentValueForBlue { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForFirstWhiteDice { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForSecondWhiteDice { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForRedDice { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForYellowDice { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForGreenDice { get; }
+        IReadOnlyReactiveProperty<int> CurrentValueForBlueDice { get; }
 
         /// <summary>
-        /// Roll the dice to get new values for them
+        /// Roll the dice to get new values
         /// </summary>
         void Roll();
         /// <summary>
@@ -28,45 +28,45 @@ namespace Dice
     [UsedImplicitly]
     public class DiceController : IDiceController
     {
-        private IReactiveProperty<int> valueForWhite1 { get; }
-        private IReactiveProperty<int> valueForWhite2 { get; }
-        private IReactiveProperty<int> valueForRed { get; }
-        private IReactiveProperty<int> valueForYellow { get; }
-        private IReactiveProperty<int> valueForGreen { get; }
-        private IReactiveProperty<int> valueForBlue { get; }
+        private IReactiveProperty<int> valueForFirstWhiteDice { get; }
+        private IReactiveProperty<int> valueForSecondWhiteDice { get; }
+        private IReactiveProperty<int> valueForRedDice { get; }
+        private IReactiveProperty<int> valueForYellowDice { get; }
+        private IReactiveProperty<int> valueForGreenDice { get; }
+        private IReactiveProperty<int> valueForBlueDice { get; }
 
         public DiceController()
         {
-            valueForWhite1 = new ReactiveProperty<int>();
-            valueForWhite2 = new ReactiveProperty<int>();
-            valueForRed = new ReactiveProperty<int>();
-            valueForYellow = new ReactiveProperty<int>();
-            valueForGreen = new ReactiveProperty<int>();
-            valueForBlue = new ReactiveProperty<int>();
+            valueForFirstWhiteDice = new ReactiveProperty<int>();
+            valueForSecondWhiteDice = new ReactiveProperty<int>();
+            valueForRedDice = new ReactiveProperty<int>();
+            valueForYellowDice = new ReactiveProperty<int>();
+            valueForGreenDice = new ReactiveProperty<int>();
+            valueForBlueDice = new ReactiveProperty<int>();
         }
 
 
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForWhite1 => valueForWhite1;
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForWhite2 => valueForWhite2;
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForRed => valueForRed;
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForYellow => valueForYellow;
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForGreen => valueForGreen;
-        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForBlue => valueForBlue;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForFirstWhiteDice => valueForFirstWhiteDice;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForSecondWhiteDice => valueForSecondWhiteDice;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForRedDice => valueForRedDice;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForYellowDice => valueForYellowDice;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForGreenDice => valueForGreenDice;
+        IReadOnlyReactiveProperty<int> IDiceController.CurrentValueForBlueDice => valueForBlueDice;
 
         public void Roll()
         {
             var rnd = new Random();
-            valueForWhite1.Value = rnd.Next(1, 7);
-            valueForWhite2.Value = rnd.Next(1, 7);
-            valueForRed.Value = rnd.Next(1, 7);
-            valueForYellow.Value = rnd.Next(1, 7);
-            valueForGreen.Value = rnd.Next(1, 7);
-            valueForBlue.Value = rnd.Next(1, 7);
+            valueForFirstWhiteDice.Value = rnd.Next(1, 7);
+            valueForSecondWhiteDice.Value = rnd.Next(1, 7);
+            valueForRedDice.Value = rnd.Next(1, 7);
+            valueForYellowDice.Value = rnd.Next(1, 7);
+            valueForGreenDice.Value = rnd.Next(1, 7);
+            valueForBlueDice.Value = rnd.Next(1, 7);
         }
 
         private int GetWhiteDiceSum()
         {
-            var whiteDiceSum = valueForWhite1.Value + valueForWhite2.Value;
+            var whiteDiceSum = valueForFirstWhiteDice.Value + valueForSecondWhiteDice.Value;
             return whiteDiceSum;
         }
 
@@ -74,8 +74,8 @@ namespace Dice
         {
             var redDiceSums = new List<int>
             {
-                valueForWhite1.Value + valueForRed.Value,
-                valueForWhite2.Value + valueForRed.Value
+                valueForFirstWhiteDice.Value + valueForRedDice.Value,
+                valueForSecondWhiteDice.Value + valueForRedDice.Value
             };
             return redDiceSums;
         }
@@ -84,8 +84,8 @@ namespace Dice
         {
             var yellowDiceSums = new List<int>
             {
-                valueForWhite1.Value + valueForYellow.Value,
-                valueForWhite2.Value + valueForYellow.Value
+                valueForFirstWhiteDice.Value + valueForYellowDice.Value,
+                valueForSecondWhiteDice.Value + valueForYellowDice.Value
             };
             return yellowDiceSums;
         }
@@ -94,8 +94,8 @@ namespace Dice
         {
             var greenDiceSums = new List<int>
             {
-                valueForWhite1.Value + valueForGreen.Value,
-                valueForWhite2.Value + valueForGreen.Value
+                valueForFirstWhiteDice.Value + valueForGreenDice.Value,
+                valueForSecondWhiteDice.Value + valueForGreenDice.Value
             };
             return greenDiceSums;
         }
@@ -104,8 +104,8 @@ namespace Dice
         {
             var blueDiceSums = new List<int>
             {
-                valueForWhite1.Value + valueForBlue.Value,
-                valueForWhite2.Value + valueForBlue.Value
+                valueForFirstWhiteDice.Value + valueForBlueDice.Value,
+                valueForSecondWhiteDice.Value + valueForBlueDice.Value
             };
             return blueDiceSums;
         }

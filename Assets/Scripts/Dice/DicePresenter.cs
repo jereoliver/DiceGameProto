@@ -28,22 +28,22 @@ namespace Dice
             switch (diceType)
             {
                 case DiceType.White1:
-                    diceController.CurrentValueForWhite1.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForFirstWhiteDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 case DiceType.White2:
-                    diceController.CurrentValueForWhite2.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForSecondWhiteDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 case DiceType.Red:
-                    diceController.CurrentValueForRed.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForRedDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 case DiceType.Yellow:
-                    diceController.CurrentValueForYellow.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForYellowDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 case DiceType.Green:
-                    diceController.CurrentValueForGreen.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForGreenDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 case DiceType.Blue:
-                    diceController.CurrentValueForBlue.Subscribe(SetDiceImage).AddTo(gameObject);
+                    diceController.CurrentValueForBlueDice.Subscribe(SetDiceImage).AddTo(gameObject);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -83,11 +83,11 @@ namespace Dice
 
     public enum DiceType
     {
-        White1,
-        White2,
-        Red,
-        Yellow,
-        Green,
-        Blue
+        White1 = 0,
+        White2 = 1,
+        Red = 2,
+        Yellow = 3,
+        Green = 4,
+        Blue = 5
     }
 }

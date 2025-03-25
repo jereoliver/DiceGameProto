@@ -117,18 +117,18 @@ namespace Scoreboard
 
     public enum SlotColor
     {
-        Red,
-        Yellow,
-        Green,
-        Blue
+        Red = 0,
+        Yellow = 1,
+        Green = 2,
+        Blue = 3
     }
 
     public enum SlotState
     {
-        UnavailableYetByRules,
-        UnavailableByScore,
-        Available,
-        Removed,
-        Crossed
+        UnavailableYetByRules = 0,
+        UnavailableByScore = 1,
+        Available = 2,
+        Removed = 3,
+        Crossed = 4
     }
 }
